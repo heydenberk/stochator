@@ -155,9 +155,9 @@ Mutators remember their previous result and, at each generation, apply the resul
 		mutator: function(a, b) { return a + b; },
 		value: 0
 	});
-	drunkardsWalk.next(10); [-1, -2, -2, -1, -1, -1, 0, 1, 1, 2]
-	drunkardsWalk.next(10); [3, 3, 3, 2, 1, 0, -1, 0, 0, 0]
-	drunkardsWalk.next(10); [0, 1, 0, -1, 0, 0, 1, 2, 1, 1]
+	drunkardsWalk.next(10); // [-1, -2, -2, -1, -1, -1, 0, 1, 1, 2]
+	drunkardsWalk.next(10); // [3, 3, 3, 2, 1, 0, -1, 0, 0, 0]
+	drunkardsWalk.next(10); // [0, 1, 0, -1, 0, 0, 1, 2, 1, 1]
 
 Let's model a bank account's balance. How much money might you have after 10 years if you start with $1000, add $1000 every year, and get interest at a random rate between 1% and 5%?
 

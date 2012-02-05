@@ -128,5 +128,3 @@ class Stochator
 				 	mutator(@_value, generator())
 		else
 			(times) -> if times then (generator() for [0...times]) else generator()
-
-console.log((new Stochator({})).next())

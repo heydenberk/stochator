@@ -1,0 +1,1 @@
+cat src/set.coffee src/stochator.coffee | coffee -c -s > build/stochator.js

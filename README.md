@@ -144,7 +144,9 @@ We can map the previously mentioned `radianGenerator` to the cosine of its value
 	radianSineGenerator.next(); // 0.6475980728835664
 
 ## Mutators
-Mutators remember their previous result and, at each generation, apply the results of a specified stochator to create a new result. By default, they are combined by addition.
+Mutators remember their previous result and, at each generation, apply the results of a specified stochator to create a new result.
+
+ _(This is functionally equivalent to a Markov chain.)_
 
 	var drunkardsWalk = new Stochator({
 		kind: "integer",
@@ -157,7 +159,6 @@ Mutators remember their previous result and, at each generation, apply the resul
 	drunkardsWalk.next(10); [3, 3, 3, 2, 1, 0, -1, 0, 0, 0]
 	drunkardsWalk.next(10); [0, 1, 0, -1, 0, 0, 1, 2, 1, 1]
 
-If we specify `mutator` it will be used to combine the remembered value and the stochator result into a single value. _(This is functionally equivalent to a Markov chain.)_
 Let's model a bank account's balance. How much money might you have after 10 years if you start with $1000, add $1000 every year, and get interest at a random rate between 1% and 5%?
 
 	var savingsAccountBalance = new Stochator({

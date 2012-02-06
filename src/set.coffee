@@ -5,6 +5,9 @@ class Set
 	toString: ->
 		"[object Set]"
 
+	copy: ->
+		@values[0...@length]
+
 	enumerate: (depth = @length) ->
 		enumerationsLength = Math.pow(@length, depth)
 		enumerations = []
@@ -36,7 +39,10 @@ class Set
 		@values.reduce(iterator)
 
 	reverse: ->
-		new Set(@values[0...@length].reverse())
+		new Set(@copy().reverse())
+
+	sort: (compare) ->
+		@copy().sort(compare)
 
 	sum: ->
 		@_sum ?= @reduce((a, b) -> a + b)

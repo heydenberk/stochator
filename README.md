@@ -1,3 +1,5 @@
+[Download](https://github.com/downloads/heydenberk/stochator/stochator.js) the latest compiled version of stochator.js (0.3.0).
+
 # Stochator
 
 `Stochator` is a tiny library providing for creating a variety of random value generators.

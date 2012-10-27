@@ -124,6 +124,8 @@ setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
 
 class global.Stochator
 
+	VERSION = "0.3.0"
+
 	constructor: (configs...) ->
 		@setGenerator(configs)
 

@@ -1,1 +1,2 @@
-cat src/set.coffee src/stochator.coffee | coffee -c -s > build/stochator.js
+#!/bin/sh
+coffee -cj build/stochator.js src/set.coffee src/stochator.coffee

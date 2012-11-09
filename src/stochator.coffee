@@ -96,7 +96,15 @@ inverseNormalCumulativeDistribution = (probability) ->
 	coefficient * numerator / denominator
 
 shuffleSet = (set) ->
-	set.sort(randomBoundedFloat).values
+	values = set.copy()
+	for index in [values.length - 1...0]
+	    randomIndex = randomBoundedInteger(0, index)
+
+		tmp = values[index]
+		values[index] = values[randomIndex]
+		values[randomIndex] = tmp
+
+	values
 
 floatGenerator = (min, max, mean, stdev) ->
 	if mean and stdev
@@ -120,8 +128,7 @@ setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
 	else
 		-> randomSetMemberWithoutReplacement(set)
 
-
-class global.Stochator
+class Stochator
 
 	VERSION = "0.3.0"
 
@@ -137,10 +144,14 @@ class global.Stochator
 			when "integer"
 				integerGenerator(config.min, config.max)
 			when "set"
-				{ values, replacement, shuffle, weights }
+				{ values, replacement, shuffle, weights } = config
 				setGenerator(values, replacement, shuffle, weights)
-			when "color" then randomColor
+			when "color", "rgb" then randomColor(config.kind)
 			when "a-z", "A-Z" then randomCharacter(config.kind is "a-z")
+		if not generator
+			throw Error("#{ config.kind } not a recognized kind.")
+		else
+			generator
 
 	createGenerators: (configs, mutator) ->
 		configs[0] ?= {}
@@ -183,7 +194,7 @@ class global.Stochator
 	toString: ->
 		"[object Stochator]"
 
-if module.exports
+if module?.exports
 	module.exports = Stochator
 else
 	this.Stochator = Stochator

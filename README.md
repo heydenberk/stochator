@@ -1,4 +1,4 @@
-[Download](https://github.com/downloads/heydenberk/stochator/stochator.js) the latest compiled version of stochator.js (0.3.0).
+[Download](https://github.com/downloads/heydenberk/stochator/stochator.js) the latest compiled version of stochator.js (0.3.1).
 
 # Stochator
 

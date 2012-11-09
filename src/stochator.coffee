@@ -3,11 +3,13 @@ isType = (type) ->
 
 callFunctions = (fns) -> (fn() for fn in fns)
 
-randomBoundedFloat = (min = 0, max = 1, spread = 1) ->
+randomBoundedFloat = (min = 0, max = 1) ->
+	spread = max - min
 	Math.random() * spread + min
 
-randomBoundedInteger = (min, max, spread) ->
-	Math.floor(randomBoundedFloat(min, max, spread))
+randomBoundedInteger = (min = 0, max = 1) ->
+	spread = 1 + max - min
+	Math.floor(Math.random() * spread) + min
 
 randomColor = ->
 	byte = kind: "integer", min: 0, max: 255
@@ -32,12 +34,12 @@ randomCharacter = (lowercase) ->
 
 randomSetMember = (set) ->
 	max = set.length - 1
-	set.get(randomBoundedInteger(0, max, max))
+	set.get(randomBoundedInteger(0, max))
 
 randomSetMemberWithoutReplacement = (set) ->
 	return undefined unless set.get(0)
 	set.length -= 1
-	index = randomBoundedInteger(0, set.length, set.length)
+	index = randomBoundedInteger(0, set.length)
 	set.values.splice(index, 1)[0]
 
 randomWeightedSetMember = (set, weights) ->
@@ -100,13 +102,10 @@ floatGenerator = (min, max, mean, stdev) ->
 	if mean and stdev
 		-> randomNormallyDistributedFloat(mean, stdev, min, max)
 	else
-		spread = (max ?= 1) - (min ?= 0)
-		-> randomBoundedFloat(min, max, spread)
+		-> randomBoundedFloat(min, max)
 
 integerGenerator = (min = 0, max = 1) ->
-	max += 1
-	spread = max - min
-	-> randomBoundedInteger(min, max, spread)
+	-> randomBoundedInteger(min, max)
 
 setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
 	set = new Set(values)

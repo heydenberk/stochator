@@ -115,13 +115,16 @@ integerGenerator = (min = 0, max = 1) ->
     -> randomBoundedInteger(min, max)
 
 setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
+    if not values or not values.length
+        throw Error("Must provide a 'values' array for a set generator.")
+
     set = new Set(values)
     if shuffle
         -> shuffleSet(set)
     else if replacement
         if weights
-            weights = new Set(weights)
-            -> randomWeightedSetMember(set, weights)
+            weightsSet = new Set(weights)
+            -> randomWeightedSetMember(set, weightsSet)
         else
             -> randomSetMember(set)
     else
@@ -167,7 +170,7 @@ class Stochator
             else
                 -> callFunctions(generators)
 
-            callGenerators = => @value = mutator(caller(), @value)
+            callGenerators = => @value = mutator.call(@, caller(), @value)
 
         (times) ->
             if times

@@ -39,8 +39,7 @@ randomSetMember = (set) ->
 randomSetMemberWithoutReplacement = (set) ->
     return undefined unless set.get(0)
     set.length -= 1
-    index = randomBoundedInteger(0, set.length)
-    set.values.splice(index, 1)[0]
+    set.pop(randomBoundedInteger(0, set.length))
 
 randomWeightedSetMember = (set, weights) ->
     [member, weightSum, float] = [undefined, 0, randomBoundedFloat()]

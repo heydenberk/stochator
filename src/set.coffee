@@ -61,3 +61,8 @@ class Set
 
     map: (iterator) ->
         new Set(iterator(value, index) for value, index in @values)
+
+    pop: (index = @length - 1) ->
+        value = @values[index]
+        @values.splice(index, 1)
+        value

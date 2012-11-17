@@ -113,7 +113,7 @@ var chores = new Stochator({
 var myChore = chores.next(); // "windows"
 var yourChore = chores.next(); // "floors"
 var hisChore = chores.next(); // "dishes"
-var noOnesChore = chores.next() // undefined
+var noOnesChore = chores.next(); // undefined
 ````
 
 ## From predefined sets
@@ -126,13 +126,18 @@ var colorGenerator = new Stochator({
 colorGenerator.next(); // { red: 122, green: 200, blue: 121 }
 colorGenerator.next(); // { red: 129, green: 89, blue: 192 }
 colorGenerator.next(); // { red: 125, green: 211, blue: 152 }
+````
 
+Note that this example passes an integer argument `n` to `next` which causes
+the stochator to return an array with the result of `n` calls to the generator.
+
+````js
 var characterGenerator = new Stochator({
 	kind: "a-z"
 });
-characterGenerator.next(); // r
-characterGenerator.next(); // j
-characterGenerator.next(); // u
+characterGenerator.next(25).join(""); // "uktlbkgufzjiztatmqelawfez"
+characterGenerator.next(25).join(""); // "wdhygotehcfmrkjyuuovztxla"
+characterGenerator.next(25).join(""); // "mbjxkhflycpxgdrtyyyevasga"
 ````
 
 ## Mutators
@@ -227,7 +232,7 @@ var mutator = function(values) {
 };
 var randomPoint = new Stochator(x, y, mutator);
 
-randomPoint.next() // { x: 79, y: 65 }
-randomPoint.next() // { x: 151, y: 283 }
-randomPoint.next() // { x: 5, y: 253 }
+randomPoint.next(); // { x: 79, y: 65 }
+randomPoint.next(); // { x: 151, y: 283 }
+randomPoint.next(); // { x: 5, y: 253 }
 ````

@@ -90,7 +90,7 @@ inverseNormalCumulativeDistribution = (probability) ->
         (value, index) -> value * Math.pow(base, maxExp - index)
 
     numerator = numCoefficients.map(mapMaxExp(numMaxExponent)).sum()
-    denominator = denomCoeffcients.map(mapMaxExp(denomMaxExponentx)).sum() + 1
+    denominator = denomCoeffcients.map(mapMaxExp(denomMaxExponent)).sum() + 1
 
     coefficient * numerator / denominator
 

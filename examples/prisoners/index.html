@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style type="text/css">
+		html, body, #container {
+			font-family: Arial, Helvetica, sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+		html, body {
+			height: 100%;
+			width: 100%;
+			background-color: #ACF;
+			background-image:
+				-webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75)),
+				-webkit-radial-gradient(50% 100%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
+		}
+		#container {
+			border: 1px #000 solid;
+			box-shadow: 
+				inset -2em -2em 8em rgba(255, 255, 255, 0.25),
+				1px 1px 3px rgba(0, 0, 0, 0.25),
+				-1px -1px 3px rgba(0, 0, 0, 0.25);
+			bottom: 5%;
+			color: #DDD;
+			left: 25%;
+			overflow-x: hidden;
+			overflow-y: scroll;
+			position: fixed;
+			right: 25%;
+			text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
+			top: 5%;
+		}
+			#container .action-row,
+			#container .score-row {
+				background: rgba(0, 0, 0, 0.25);
+				border-bottom: 1px #000 solid;
+				display: inline-block;
+				height: 2em;
+				line-height: 2em;
+				margin: 0;
+				padding-left: 1em;
+				width: 100%;
+			}
+			#container .action-row:nth-child(even) {
+				background: rgba(0, 0, 0, 0.5);
+			}
+			#container .action-row .action-col,
+			#container .score-row .score-col {
+				display: inline-block;
+				height: 2em;
+				line-height: 2em;
+				text-align: center;
+				width: 5em;
+			}
+			#container .action-row .action-col:first-child {
+				margin-left: 1em;
+			}
+				#container .action-row .action-col-cooperate,
+				#container .score-row .score-row-positive {
+					background: rgba(128, 255, 128, 0.5);
+				}
+				#container .action-row .action-col-defect,
+				#container .score-row .score-row-negative {
+					background: rgba(255, 128, 128, 0.5);
+				}
+	</style>
+	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script src="http://documentcloud.github.com/underscore/underscore-min.js"></script>
+	<script src="http://documentcloud.github.com/backbone/backbone-min.js"></script>
+	<title>Synthetic Reason</title>
+</head>
+<body>
+	<div id="container">
+	</div>
+	<script src="scripts.js"></script>
+</body>
+</html>

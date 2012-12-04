@@ -553,10 +553,24 @@ var CellMap = (function() {
     };
 
     CellMap.prototype.initializeSvg = function() {
+        var _this = this;
         return d3.select("div#container").insert("svg:svg", "h2")
             .attr("id", "diagram")
             .attr("width", this.mask.width)
-            .attr("height", this.mask.height);
+            .attr("height", this.mask.height)
+            .on("dblclick", function() {
+                var x = d3.event.x, y = d3.event.y;
+                console.log(x, y);
+                var doubleScale = 'scale(3, 3)';
+                var translateHeight = (_this.mask.height / 2) - d3.event.y;
+                var translateWidth = (_this.mask.width / 2) - d3.event.x;
+                if (this.style.webkitTransform !== '') {
+                    this.style.webkitTransform = '';
+                } else {
+                    // console.log(doubleScale + ' translate(' + translateWidth + 'px, ' + translateHeight + 'px)');
+                    this.style.webkitTransform = doubleScale + ' translate(' + translateWidth + 'px, ' + translateHeight + 'px)';
+                }
+            });
     };
 
     CellMap.prototype.setMapGeometry = function(width, height) {

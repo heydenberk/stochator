@@ -552,6 +552,22 @@ var CellMap = (function() {
         'desert': { mineral: 3, food: 0, energy: 3 }
     };
 
+    CellMap.prototype.zoomPan = function(scaleCoefficient, centerPoint) {
+        var scale = 'scale(' + scaleCoefficient + ',' + scaleCoefficient + ')';
+        var transform = scale;
+        if (centerPoint) {
+            var translatePoint = [
+                this.mask.width / 2 - centerPoint[0],
+                this.mask.height / 2 - centerPoint[1]
+            ];
+            var translate = 'translate(' + translatePoint[0] + 'px, ' + translatePoint[1] + 'px)';
+            transform += ' ' + translate;
+        }
+        this.svg[0][0].style.webkitTransform = transform;
+    };
+
+    CellMap.prototype.isZoomed = false;
+
     CellMap.prototype.initializeSvg = function() {
         var _this = this;
         return d3.select("div#container").insert("svg:svg", "h2")
@@ -559,16 +575,12 @@ var CellMap = (function() {
             .attr("width", this.mask.width)
             .attr("height", this.mask.height)
             .on("dblclick", function() {
-                var x = d3.event.x, y = d3.event.y;
-                console.log(x, y);
-                var doubleScale = 'scale(3, 3)';
-                var translateHeight = (_this.mask.height / 2) - d3.event.y;
-                var translateWidth = (_this.mask.width / 2) - d3.event.x;
-                if (this.style.webkitTransform !== '') {
-                    this.style.webkitTransform = '';
+                if (_this.isZoomed) {
+                    _this.isZoomed = false;
+                    _this.zoomPan(1);
                 } else {
-                    // console.log(doubleScale + ' translate(' + translateWidth + 'px, ' + translateHeight + 'px)');
-                    this.style.webkitTransform = doubleScale + ' translate(' + translateWidth + 'px, ' + translateHeight + 'px)';
+                    _this.isZoomed = [_this.mask.width / 2, _this.mask.height / 2];
+                    _this.zoomPan(3, [d3.event.x, d3.event.y]);
                 }
             });
     };

@@ -105,14 +105,22 @@ shuffleSet = (set) ->
 
     values
 
-floatGenerator = (min, max, mean, stdev) ->
-    if mean and stdev
+floatGenerator = (min, max, mean, stdev, radix) ->
+    generator = if mean and stdev
         -> randomNormallyDistributedFloat(mean, stdev, min, max)
     else
         -> randomBoundedFloat(min, max)
+    wrapNumberGeneratorWithRadix(generator, radix)
 
-integerGenerator = (min = 0, max = 1) ->
-    -> randomBoundedInteger(min, max)
+integerGenerator = (min = 0, max = 1, radix) ->
+    generator = -> randomBoundedInteger(min, max)
+    wrapNumberGeneratorWithRadix(generator, radix)
+
+wrapNumberGeneratorWithRadix = (generator, radix) ->
+    if not radix
+        generator
+    else
+        -> generator().toString(radix)
 
 setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
     if not values or not values.length
@@ -141,10 +149,11 @@ class Stochator
         config.kind ?= "float"
         generator = switch config.kind
             when "float"
-                { min, max, mean, stdev } = config
-                floatGenerator(min, max, mean, stdev)
+                { min, max, mean, stdev, radix } = config
+                floatGenerator(min, max, mean, stdev, radix)
             when "integer"
-                integerGenerator(config.min, config.max)
+                { min, max, radix } = config
+                integerGenerator(min, max, radix)
             when "set"
                 { values, replacement, shuffle, weights } = config
                 setGenerator(values, replacement, shuffle, weights)

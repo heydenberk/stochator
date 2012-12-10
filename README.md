@@ -1,4 +1,4 @@
-[Download](https://github.com/downloads/heydenberk/stochator/stochator.js) the latest compiled version of stochator.js (0.3.3).
+[Download](https://github.com/downloads/heydenberk/stochator/stochator.js) the latest compiled version of stochator.js (0.3.4).
 
 # Stochator
 
@@ -82,10 +82,10 @@ var dayGenerator = new Stochator({
 	values: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 });
 dayGenerator.next(); // friday
-dayGenerator.next(); // monday 
+dayGenerator.next(); // monday
 dayGenerator.next(); // monday
 ````
-	
+
 ## From sets with weights
 What if we favor the weekend? Well, we can pass `weights`, an array of the same length as `values` consisting of probabilities out of 1 that correspond to `values`.
 
@@ -96,7 +96,7 @@ var biasedDayGenerator = new Stochator({
 	weights: [0.1, 0.1, 0.1, 0.1, 0.1, 0.25, 0.25]
 });
 biasedDayGenerator.next(); // thursday
-biasedDayGenerator.next(); // sunday 
+biasedDayGenerator.next(); // sunday
 biasedDayGenerator.next(); // saturday
 ````
 

@@ -97,6 +97,17 @@ Util.Geom.closestPointsOnPolygon = function(point, polygon) {
     return closestPoints;
 };
 
+Util.Geom.closestPoint = function(point, points) {
+    var closestPoint = null, closestDistance = null;
+    points.forEach(function(otherPoint) {
+        var distance = Util.Geom.distance(point, otherPoint);
+        if (closestDistance == null || distance < closestDistance) {
+            closestPoints = point, closestDistance = distance;
+        }
+    });
+    return closestPoint;
+};
+
 Util.Geom.distanceToPoints = function(point, points) {
     var getDistanceToPoint = function(otherPoint) {
         return Util.Geom.distance(point, otherPoint);
@@ -139,5 +150,45 @@ Util.SVG.polygonString = function(points) {
     return "M" + points.join("L") + "Z";
 };
 
-Util.Math = {};
+Util.Function = {};
+
+Util.Function.compose = function(fn1, fn2) {
+    return function() { fn2(fn1()); };
+};
+
+Util.Array = {};
+
+Util.Array.indexGetter = function(index) {
+    return function(array) {
+        return array[index];
+    };
+};
+
+Util.Array.count = function(array) {
+    var counts = {};
+    array.forEach(function(value) {
+        counts[value] = (counts[value] || 0) + 1;
+    });
+
+    return counts;
+};
+
+Util.Array.zipMap = function() {
+    var arrayCount = arguments.length - 1;
+    var arrays = Array.prototype.slice.call(arguments, 0, arrayCount);
+    var iterator = Array.prototype.slice.call(arguments, arrayCount)[0];
+    var result = [];
+
+    for (var index = 0; index < arrays[0].length; index++) {
+        var values = arrays.map(Util.Array.indexGetter(index));
+        result.push(iterator.apply(this, values));
+    }
+    return result;
+};
+
+Util.Number = {};
+
+Util.Number.clamp = function(number, min, max) {
+    return Math.min(max, Math.max(min, number));
+};
 

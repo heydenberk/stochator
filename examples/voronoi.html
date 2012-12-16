@@ -2,150 +2,31 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <style type="text/css">
-
-      html, body {
-        background: #001955;
-        font-family: sans-serif;
-        height: 100%;
-        margin: 0;
-        width: 100%;
-      }
-
-      div#header {
-        font-size: 90%;
-        height: 10%;
-        text-align: center;
-      }
-
-      svg#diagram {
-        display: block;
-        margin-top: 0;
-      }
-
-      path.continent {
-        fill-opacity: 0;
-        stroke: #FFF;
-        stroke-opacity: 1;
-      }
-
-      path.cell {
-        fill: none;
-        pointer-events: all;
-        stroke: #FFF;
-        stroke-opacity: 1;
-        stroke-width: 1.25;
-      }
-
-      path.cell.ocean {
-        stroke: none;
-      }
-
-      path.cell.deepwater {
-        fill: #001955;
-        stroke: #001955;
-      }
-
-      path.cell.sea {
-        fill: #037;
-        stroke: #037;
-      }
-
-      path.cell.lake {
-        fill: #148;
-        stroke: #148;
-      }
-
-      path.cell.mountain {
-        fill: #1D1A18;
-        stroke: #1D1A18;
-      }
-
-      path.cell.snow {
-        fill: #8CF;
-        stroke: #8CF;
-      }
-
-      path.cell.tundra {
-        fill: #341;
-        stroke: #341;
-      }
-
-      path.cell.taiga {
-        fill: #153;
-        stroke: #153;
-      }
-
-      path.cell.forest {
-        fill: #2A5C2A;
-        stroke: #2A5C2A;
-      }
-
-      path.cell.rainforest {
-        fill: #252;
-        stroke: #252;
-      }
-
-      path.cell.prairie {
-        fill: #261;
-        stroke: #261;
-      }
-
-      path.cell.savannah {
-        fill: #361;
-        stroke: #361;
-      }
-
-      path.cell.desert {
-        fill: #461;
-        stroke: #461;
-      }
-
-      circle.vertex {
-        fill: #FFF;
-        fill-opacity: 0.5;
-      }
-
-      #mask {
-        background: url('noise.png');
-        pointer-events: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-      }
-
-      #mask div.cell-value {
-        color: #FFF;
-        position: absolute;
-        font-size: 10px;
-        text-shadow: 0.5px 1px 1px rgba(0, 0, 0, 0.5);
-      }
-
-    </style>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="container"></div>
+    <div id="container">
+        <svg id="map"></svg>
+    </div>
     <div id="mask">
         <div id="debug"></div>
     </div>
+    <script type="text/javascript" src="lib/d3.js"></script>
     <script type="text/javascript" src="../build/stochator.js"></script>
     <script type="text/javascript" src="script/util.js"></script>
+    <script type="text/javascript" src="script/cell-clusters.js"></script>
+    <script type="text/javascript" src="script/continental-plates.js"></script>
+    <script type="text/javascript" src="script/cells.js"></script>
     <script type="text/javascript" src="script/cell-map.js"></script>
-    <script type="text/javascript" src="lib/d3.js"></script>
     <script type="text/javascript">
 
-        var docEl = document.documentElement;
-        var mask = document.getElementById('mask');
-        console.time('createDiagram');
-        var diagram = new CellMap(
-            1000, Math.floor(docEl.clientWidth), Math.floor(docEl.clientHeight)
-        );
-        console.timeEnd('createDiagram');
-        console.time('draw');
-        diagram.draw();
-        console.timeEnd('draw');
+        console.profile('createMap');
+        var map = new CellMap(1000);
+        console.profileEnd('createMap');
+
+        console.profile('draw');
+        map.draw();
+        console.profileEnd('draw');
 
     </script>
   </body>

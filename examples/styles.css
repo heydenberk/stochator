@@ -1,0 +1,142 @@
+
+
+html, body {
+  background: #001955;
+  font-family: sans-serif;
+  height: 100%;
+  margin: 0;
+  width: 100%;
+}
+
+div#header {
+  font-size: 90%;
+  height: 10%;
+  text-align: center;
+}
+
+svg#diagram {
+  display: block;
+  margin-top: 0;
+  transition: all 0.5s;
+  -webkit-transition: all 0.5s;
+}
+
+path.continent {
+  fill-opacity: 0;
+  stroke: #FFF;
+  stroke-opacity: 1;
+}
+
+path.cell {
+  fill: none;
+  pointer-events: all;
+  stroke: #FFF;
+  stroke-opacity: 1;
+  stroke-width: 1.25;
+}
+
+path.cell.sea {
+  fill: #037;
+  stroke: #037;
+}
+
+path.cell.lake {
+  fill: #148;
+  stroke: #148;
+}
+
+path.cell.mountain {
+  fill: #1D1A18;
+  stroke: #1D1A18;
+}
+
+path.cell.snow {
+  fill: #8CF;
+  stroke: #8CF;
+}
+
+path.cell.tundra {
+  fill: #341;
+  stroke: #341;
+}
+
+path.cell.taiga {
+  fill: #153;
+  stroke: #153;
+}
+
+path.cell.forest {
+  fill: #2A5C2A;
+  stroke: #2A5C2A;
+}
+
+path.cell.tropical-forest {
+  fill: #252;
+  stroke: #252;
+}
+
+path.cell.temperate-rainforest {
+  fill: #152;
+  stroke: #152;
+}
+
+path.cell.tropical-rainforest {
+  fill: #142;
+  stroke: #142;
+}
+
+path.cell.prairie {
+  fill: #251;
+  stroke: #251;
+}
+
+path.cell.savanna {
+  fill: #361;
+  stroke: #361;
+}
+
+path.cell.desert {
+  fill: #561;
+  stroke: #561;
+}
+
+path.cell.altitude-8 {
+  fill: #333;
+  stroke: #333;
+}
+
+path.cell.altitude-9 {
+  fill: #222;
+  stroke: #222;
+}
+
+circle.vertex {
+  fill: #FFF;
+  fill-opacity: 0.5;
+}
+
+path.cell.ocean {
+  display: none;
+}
+
+path.cell.deepwater {
+  fill: #015;
+  stroke: #015;
+}
+
+#mask {
+  background: url('noise.png');
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+#mask div.cell-value {
+  color: #FFF;
+  position: absolute;
+  font-size: 10px;
+  text-shadow: 0.5px 1px 1px rgba(0, 0, 0, 0.5);
+}

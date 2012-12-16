@@ -1,0 +1,31 @@
+{
+  "name": "stochator",
+  "version": "0.3.3",
+  "description": "A little library for generating random values.",
+  "main": "build/stochator.js",
+  "directories": {},
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/heydenberk/stochator.git"
+  },
+  "keywords": [
+    "random",
+    "numbers",
+    "values",
+    "color",
+    "string",
+    "integer",
+    "array",
+    "shuffle",
+    "set",
+    "markov",
+    "chain",
+    "generator",
+    "prng",
+    "normal",
+    "distribution"
+  ],
+  "author": "Eric Heydenberk",
+  "license": "MPLv2"
+}

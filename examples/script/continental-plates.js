@@ -58,7 +58,8 @@ var ContinentalPlates = (function() {
     }
 
     function ContinentalPlates(cellCount, mask) {
-        this.continentCount = Math.pow(cellCount, 1/3);
+        var continentCountExp = new Stochator({ min: 0.2, max: 0.3 });
+        this.continentCount = Math.pow(cellCount, continentCountExp.next());
         this.mask = mask;
         var pointGenerator = new Stochator(
             { min: 0, max: this.mask.width, kind: "integer" },
@@ -82,12 +83,11 @@ var ContinentalPlates = (function() {
 var ContinentalPlate = (function() {
 
     ContinentalPlate.prototype.getVertexDistance = function() {
-        var distanceSum = this.cell.map(function(point) {
-            return Util.Geom.distance(point, this.centroid);
-        }, this).reduce(function(distance1, distance2) {
-            return distance1 + distance2;
-        });
-        return distanceSum / this.cell.length;
+        var centroid = this.centroid;
+        var centroidDistance = function(point) {
+            return Util.Geom.distance(point, centroid);
+        };
+        return Util.Math.mean(this.cell.map(centroidDistance));
     }
 
     ContinentalPlate.prototype.getPointCentrality = function(point) {

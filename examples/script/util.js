@@ -34,12 +34,17 @@ Util.Geom.createRectangle = function(topLeft, bottomRight) {
         topLeft, bottomLeft, bottomRight, topRight
     ]);
 };
-Util.Geom.pointMean = function(points) {
-    var transposedPoints = d3.transpose(points);
-    return [d3.mean(transposedPoints[0]), d3.mean(transposedPoints[1])];
+
+Util.Geom.pointSum = function(point1, point2) {
+    return [point1[0] + point2[0], point1[1] + point2[1]];
 };
 
-Util.Geom.roundPoint = function(point) {
+Util.Geom.pointMean = function(points) {
+    var pointsSum = points.reduce(Util.Geom.pointSum, [0, 0]);
+    return [pointsSum[0] / points.length, pointsSum[1] / points.length];
+};
+
+Util.Geom.roundPoint = function(point, precision) {
     point[0] = Math.round(point[0]);
     point[1] = Math.round(point[1]);
     return point;
@@ -121,10 +126,18 @@ Util.Geom.distanceToPolygon = function(point, polygon) {
     return Math.min.apply(Math, closestPointsDistances);
 };
 
+Util.Geom.distanceToPolygons = function(point, polygons) {
+    return Util.Geom.distanceToPolygon(point, d3.merge(polygons));
+};
+
 Util.Geom.getClippedVoronoi = function(points, mask) {
-    return d3.geom.voronoi(points)
-        .map(mask.clip)
-        .map(Util.Geom.roundPoints);
+    try {
+        return d3.geom.voronoi(points)
+            .map(mask.clip)
+            .map(Util.Geom.roundPoints);
+    } catch (e) {
+        return null;
+    }
 };
 
 Util.Geom.relaxPoints = function(points, mask, times) {
@@ -134,20 +147,59 @@ Util.Geom.relaxPoints = function(points, mask, times) {
     return points;
 };
 
+Util.Geom.pointToString = function(point) {
+    return point.join(",");
+};
+
+Util.Geom.stringToPoint = function(string) {
+    var coords = string.split(",");
+    return [parseInt(coords[0], 10), parseInt(coords[1], 10)];
+};
+
+Util.Geom.simplifyPolygon = function(polygon) {
+    return Util.Array.unique(polygon, function(point1, point2) {
+        return point1[0] == point2[0] && point1[1] == point2[1];
+    });
+};
+
 Util.Obj = {};
 
-Util.Obj.countValues = function(objs, attribute) {    
+Util.Obj.countValues = function(objs, attr) {    
     var count = {};
     return objs.reduce(function(count, obj) {
-        count[obj[attribute]] = (count[obj[attribute]] || 0) + 1;
+        count[obj[attr]] = (count[obj[attr]] || 0) + 1;
         return count;
     }, {});
 };
 
+Util.Obj.attrGetter = function(attr) {
+    return function(obj) {
+        return obj[attr];
+    };
+};
+
+Util.Obj.forEach = function(obj, iterator, context) {
+    for (var prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            iterator.call(context || this, prop, obj[prop]);
+        }
+    }
+};
+
+Util.Obj.map = function(obj, iterator, context) {
+    var values = [];
+    for (var prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            values.push(iterator.call(context || this, prop, obj[prop]));
+        }
+    }
+    return values;
+};
+
 Util.SVG = {};
 
-Util.SVG.polygonString = function(points) {
-    return "M" + points.join("L") + "Z";
+Util.SVG.polygonString = function(points, open) {
+    return "M" + points.join("L") + (open ? "" : "Z");
 };
 
 Util.Function = {};
@@ -156,10 +208,46 @@ Util.Function.compose = function(fn1, fn2) {
     return function() { fn2(fn1()); };
 };
 
+Util.Function.equals = function(compareValue) {
+    return function(value) {
+        return value === compareValue;
+    };
+};
+
 Util.Array = {};
+
+Util.Array.getPercentiles = function(array, percentiles, comparator) {
+    var sorter = comparator || function(a, b) { return a - b; };
+    var getter = Util.Array.getter(array.sort(sorter));
+    var getPercentileIndex = function(percentile) {
+        return Math.floor(array.length * percentile);
+    };
+    var percentileValues = percentiles.map(getPercentileIndex).map(getter);
+    return Util.Array.toObject(d3.zip(percentiles, percentileValues));
+};
+
+Util.Array.toObject = function(array) {
+    var obj = {};
+    array.forEach(function(values) {
+        obj[values[0]] = values[1];
+    });
+    return obj;
+};
+
+Util.Array.valueSetter = function(array, value) {
+    return function(index) {
+        array[index] = value;
+    };
+};
 
 Util.Array.indexGetter = function(index) {
     return function(array) {
+        return array[index];
+    };
+};
+
+Util.Array.getter = function(array) {
+    return function(index) {
         return array[index];
     };
 };
@@ -186,9 +274,79 @@ Util.Array.zipMap = function() {
     return result;
 };
 
-Util.Number = {};
+Util.Array.unique = function(array, comparator) {
+    var uniqueValues = [];
+    comparator = comparator || function(value1, value2) {
+        return value1 === value2;
+    };
+    for (var index1 = 0; index1 < array.length; index1++) {
+        var value1 = array[index1];
+        var isUnique = true;
+        for (var index2 = 0; index2 < uniqueValues.length; index2++) {
+            var value2 = uniqueValues[index2];
+            if (comparator(value1, value2)) {
+                isUnique = false;
+                break;
+            }
+        }
+        if (isUnique) {
+            uniqueValues.push(value1);
+        }
+    }
+    return uniqueValues;
+};
 
-Util.Number.clamp = function(number, min, max) {
+Util.Array.multiMap = function(arrays, iterator, context) {
+    var arrayLengths = arrays.map(Util.Obj.attrGetter("length"));
+    var maxArrayLength = Math.max.apply(Math, arrayLengths);
+    return d3.range(maxArrayLength).map(function(index) {
+        return iterator.call(context || this, arrays.map(Util.Array.indexGetter(index)), index);
+    });
+};
+
+Util.Array.multiEach = function(arrays, iterator, context) {
+    var arrayLengths = arrays.map(Util.Obj.attrGetter("length"));
+    var maxArrayLength = Math.max.apply(Math, arrayLengths);
+    d3.range(maxArrayLength).forEach(function(index) {
+        iterator.call(context || this, arrays.map(Util.Array.indexGetter(index)), index);
+    });
+};
+
+Util.Array.sum = function(array) {
+    return array.reduce(Util.Math.add);
+};
+
+Util.Array.indexFilter = function(array, iterator, context) {
+    var indexes = [];
+    array.forEach(function(value, index) {
+        if (iterator.call(context || this, value)) {
+            indexes.push(index);
+        }
+    });
+    return indexes;
+};
+
+Util.Math = {};
+
+Util.Math.clamp = function(number, min, max) {
     return Math.min(max, Math.max(min, number));
+};
+
+Util.Math.round = function(number, precision) {
+    var coefficient = Math.pow(10, precision || 0);
+    return Math.round(number * coefficient) / coefficient;
+};
+
+Util.Math.mean = function(numbers) {
+    return Util.Array.sum(numbers) / numbers.length;
+};
+
+Util.Math.geometricMean = function(numbers) {
+    var multiply = function(number1, number2) { return number1 * number2; };
+    return Math.pow(numbers.reduce(multiply, 1), 1 / numbers.length);
+};
+
+Util.Math.add = function(number1, number2) {
+    return number1 + number2;
 };
 

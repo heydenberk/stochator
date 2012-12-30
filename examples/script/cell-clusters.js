@@ -5,9 +5,18 @@ var CellClusters = (function() {
         return this.indexes[cellIndex];
     };
 
-    CellClusters.prototype.each = function(iterator, context) {
+    CellClusters.prototype.forEach = function(iterator, context) {
         this.clusters.forEach(iterator, context || this);
     };
+
+    CellClusters.prototype.map = function(iterator, context) {
+        return this.clusters.map(iterator, context || this);
+    };
+
+    CellClusters.prototype.filter = function(iterator, context) {
+        return this.clusters.filter(iterator, context || this);
+    };
+
 
     CellClusters.prototype.addCluster = function(cluster) {
         this.clusters.push(cluster);
@@ -17,9 +26,9 @@ var CellClusters = (function() {
         return this.clusters[clusterIndex];
     };
 
-    CellClusters.prototype.addToNewCluster = function(cellIndex, cellType, isInteriorCell) {
+    CellClusters.prototype.addToNewCluster = function(cellIndex, cellType) {
         this.indexes[cellIndex] = true;
-        this.addCluster(new CellCluster(cellIndex, cellType, isInteriorCell))
+        this.addCluster(new CellCluster(cellIndex, cellType))
     };
 
     CellClusters.prototype.addToCluster = function(clusterIndex, cellIndex) {
@@ -40,6 +49,17 @@ var CellClusters = (function() {
         this.clusters.splice(clusterIndex, 1);
     };
 
+    CellClusters.prototype.removeDuplicates = function() {
+        var sortCells = function(index1, index2) {
+            return parseInt(index1, 10) - parseInt(index2, 10);
+        };
+        this.clusters = Util.Array.unique(this.clusters, function(cluster1, cluster2) {
+            var sortedCells1 = cluster1.cells.sort(sortCells);
+            var sortedCells2 = cluster2.cells.sort(sortCells);
+            return sortedCells1.join(",") == sortedCells2.join(",");
+        });
+    };
+
     function CellClusters(count) {
         this.indexes = {};
         this.clusters = [];
@@ -55,18 +75,15 @@ var CellCluster = (function() {
         return this.indexes[cellIndex];
     };
 
-    CellCluster.prototype.add = function(cellIndex, isInteriorCell) {
+    CellCluster.prototype.add = function(cellIndex) {
         this.indexes[cellIndex] = true;
         this.cells.push(cellIndex + "");
-        if (isInteriorCell) {
-            this.interiorCells.push(cellIndex + "");
-        }
     };
 
-    CellCluster.prototype.join = function(cluster, isInteriorCell) {
+    CellCluster.prototype.join = function(cluster) {
         cluster.cells.forEach(function(cellIndex) {
             if (!this.has(cellIndex)) {
-                this.add(cellIndex, isInteriorCell);
+                this.add(cellIndex);
             }
         }, this);
     };
@@ -77,11 +94,10 @@ var CellCluster = (function() {
         }, this);
     };
 
-    function CellCluster(cellIndex, cellType, isInteriorCell) {
+    function CellCluster(cellIndex, cellType) {
         this.indexes = {};
         this.cells = [];
-        this.interiorCells = [];
-        this.add(cellIndex, isInteriorCell);
+        this.add(cellIndex);
         this.cellType = cellType;
     }
 

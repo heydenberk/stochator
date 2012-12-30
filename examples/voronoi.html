@@ -21,12 +21,22 @@
     <script type="text/javascript">
 
         console.profile('createMap');
-        var map = new CellMap(1000);
+        window.map = new CellMap(1000);
         console.profileEnd('createMap');
 
-        console.profile('draw');
-        map.draw();
-        console.profileEnd('draw');
+        window.map.draw();
+        window.map.logData();
+
+        document.addEventListener('keydown', function(evt) {
+            if (evt.keyCode == 82 && !evt.metaKey) {
+                console.profile('recreateMap');
+                window.map.reinit();
+                console.profileEnd('recreateMap');
+
+                window.map.draw();
+                window.map.logData();
+            }
+        });
 
     </script>
   </body>

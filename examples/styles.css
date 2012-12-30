@@ -30,9 +30,6 @@ path.continent {
 path.cell {
   fill: none;
   pointer-events: all;
-  stroke: #FFF;
-  stroke-opacity: 1;
-  stroke-width: 1.25;
 }
 
 path.cell.sea {
@@ -70,17 +67,17 @@ path.cell.forest {
   stroke: #2A5C2A;
 }
 
-path.cell.tropical-forest {
+path.cell.tropical_forest {
   fill: #252;
   stroke: #252;
 }
 
-path.cell.temperate-rainforest {
+path.cell.temperate_rainforest {
   fill: #152;
   stroke: #152;
 }
 
-path.cell.tropical-rainforest {
+path.cell.tropical_rainforest {
   fill: #142;
   stroke: #142;
 }
@@ -100,14 +97,25 @@ path.cell.desert {
   stroke: #561;
 }
 
-path.cell.altitude-8 {
-  fill: #333;
-  stroke: #333;
+path.river {
+  fill: none;
+  stroke: #002890;
+  stroke-width: 5px;
 }
 
-path.cell.altitude-9 {
-  fill: #222;
-  stroke: #222;
+path.cell.elevation-8 {
+  fill: #132;
+  stroke: #132;
+}
+
+path.cell.elevation-9 {
+  fill: #1D3D2D;
+  stroke: #1D3D2D;
+}
+
+path.cell.elevation-10 {
+  fill: #143B24;
+  stroke: #143B24;
 }
 
 circle.vertex {
@@ -122,6 +130,19 @@ path.cell.ocean {
 path.cell.deepwater {
   fill: #015;
   stroke: #015;
+}
+
+path.cluster {
+  pointer-events: none;
+  stroke-opacity: 0;
+  stroke-width: 2px;
+  stroke: #FFF;
+  fill-opacity: 0;
+  fill: #000;
+}
+
+path.cluster.ocean {
+  display: none;
 }
 
 #mask {

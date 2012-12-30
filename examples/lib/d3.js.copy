@@ -12,9 +12,12 @@
     };
   }
   d3 = {
-    version: "3.0.1"
+    version: "3.0.0pre"
   };
-  var π = Math.PI, ε = 1e-6, d3_radians = π / 180, d3_degrees = 180 / π;
+  var π = Math.PI, ε = 1e-6, ε2 = ε * ε, d3_radians = π / 180, d3_degrees = 180 / π;
+  function d3_zero() {
+    return 0;
+  }
   function d3_target(d) {
     return d.target;
   }
@@ -231,7 +234,7 @@
     return s;
   };
   d3.quantile = function(values, p) {
-    var H = (values.length - 1) * p + 1, h = Math.floor(H), v = +values[h - 1], e = H - h;
+    var H = (values.length - 1) * p + 1, h = Math.floor(H), v = values[h - 1], e = H - h;
     return e ? v + e * (values[h] - v) : v;
   };
   d3.shuffle = function(array) {
@@ -451,13 +454,8 @@
     d3.rebind(xhr, dispatch, "on");
     if (arguments.length === 2 && typeof mimeType === "function") callback = mimeType, 
     mimeType = null;
-    return callback == null ? xhr : xhr.get(d3_xhr_fixCallback(callback));
+    return callback == null ? xhr : xhr.get(callback);
   };
-  function d3_xhr_fixCallback(callback) {
-    return callback.length === 1 ? function(error, request) {
-      callback(error == null ? request : null);
-    } : callback;
-  }
   d3.text = function() {
     return d3.xhr.apply(d3, arguments).response(d3_text);
   };
@@ -4627,8 +4625,10 @@
   }
   d3.layout.hierarchy = function() {
     var sort = d3_layout_hierarchySort, children = d3_layout_hierarchyChildren, value = d3_layout_hierarchyValue;
-    function recurse(node, depth, nodes) {
-      var childs = children.call(hierarchy, node, depth);
+    function recurse(data, depth, nodes) {
+      var childs = children.call(hierarchy, data, depth), node = d3_layout_hierarchyInline ? data : {
+        data: data
+      };
       node.depth = depth;
       nodes.push(node);
       if (childs && (n = childs.length)) {
@@ -4642,7 +4642,7 @@
         if (sort) c.sort(sort);
         if (value) node.value = v;
       } else if (value) {
-        node.value = +value.call(hierarchy, node, depth) || 0;
+        node.value = +value.call(hierarchy, data, depth) || 0;
       }
       return node;
     }
@@ -4652,7 +4652,7 @@
         var i = -1, n, j = depth + 1;
         while (++i < n) v += revalue(children[i], j);
       } else if (value) {
-        v = +value.call(hierarchy, node, depth) || 0;
+        v = +value.call(hierarchy, d3_layout_hierarchyInline ? node : node.data, depth) || 0;
       }
       if (value) node.value = v;
       return v;
@@ -4685,8 +4685,11 @@
   };
   function d3_layout_hierarchyRebind(object, hierarchy) {
     d3.rebind(object, hierarchy, "sort", "children", "value");
-    object.nodes = object;
     object.links = d3_layout_hierarchyLinks;
+    object.nodes = function(d) {
+      d3_layout_hierarchyInline = true;
+      return (object.nodes = object)(d);
+    };
     return object;
   }
   function d3_layout_hierarchyChildren(d) {
@@ -4708,6 +4711,7 @@
       });
     }));
   }
+  var d3_layout_hierarchyInline = false;
   d3.layout.pack = function() {
     var hierarchy = d3.layout.hierarchy().sort(d3_layout_packSort), padding = 0, size = [ 1, 1 ];
     function pack(d, i) {
@@ -5092,7 +5096,7 @@
     function squarify(node) {
       var children = node.children;
       if (children && children.length) {
-        var rect = pad(node), row = [], remaining = children.slice(), child, best = Infinity, score, u = mode === "slice" ? rect.dx : mode === "dice" ? rect.dy : mode === "slice-dice" ? node.depth & 1 ? rect.dy : rect.dx : Math.min(rect.dx, rect.dy), n;
+        var rect = pad(node), row = [], remaining = children.slice(), child, best = Infinity, score, u = mode === "slice" ? rect.dx : mode === "dice" || mode === "slice-dice" && node.depth & 1 ? rect.dy : Math.min(rect.dx, rect.dy), n;
         scale(remaining, rect.dx * rect.dy / node.value);
         row.area = 0;
         while ((n = remaining.length) > 0) {
@@ -5348,6 +5352,10 @@
     FeatureCollection: function(object, listener) {
       var features = object.features, i = -1, n = features.length;
       while (++i < n) d3_geo_streamGeometry(features[i].geometry, listener);
+    },
+    GeometryCollection: function(object, listener) {
+      var geometries = object.geometries, i = -1, n = geometries.length;
+      while (++i < n) d3_geo_streamGeometry(geometries[i], listener);
     }
   };
   var d3_geo_streamGeometryType = {
@@ -5375,10 +5383,6 @@
     MultiPolygon: function(object, listener) {
       var coordinates = object.coordinates, i = -1, n = coordinates.length;
       while (++i < n) d3_geo_streamPolygon(coordinates[i], listener);
-    },
-    GeometryCollection: function(object, listener) {
-      var geometries = object.geometries, i = -1, n = geometries.length;
-      while (++i < n) d3_geo_streamGeometry(geometries[i], listener);
     }
   };
   function d3_geo_streamLine(coordinates, listener, closed) {
@@ -5597,20 +5601,12 @@
   };
   var d3_geo_centroidDimension, d3_geo_centroidW, d3_geo_centroidX, d3_geo_centroidY, d3_geo_centroidZ;
   var d3_geo_centroid = {
-    sphere: function() {
-      if (d3_geo_centroidDimension < 2) {
-        d3_geo_centroidDimension = 2;
-        d3_geo_centroidW = d3_geo_centroidX = d3_geo_centroidY = d3_geo_centroidZ = 0;
-      }
-    },
+    sphere: d3_noop,
     point: d3_geo_centroidPoint,
     lineStart: d3_geo_centroidLineStart,
     lineEnd: d3_geo_centroidLineEnd,
     polygonStart: function() {
-      if (d3_geo_centroidDimension < 2) {
-        d3_geo_centroidDimension = 2;
-        d3_geo_centroidW = d3_geo_centroidX = d3_geo_centroidY = d3_geo_centroidZ = 0;
-      }
+      d3_geo_centroidDimension = 2;
       d3_geo_centroid.lineStart = d3_geo_centroidRingStart;
     },
     polygonEnd: function() {
@@ -5628,6 +5624,10 @@
   }
   function d3_geo_centroidRingStart() {
     var λ00, φ00;
+    if (d3_geo_centroidDimension < 2) {
+      d3_geo_centroidDimension = 2;
+      d3_geo_centroidW = d3_geo_centroidX = d3_geo_centroidY = d3_geo_centroidZ = 0;
+    }
     d3_geo_centroidDimension = 1;
     d3_geo_centroidLineStart();
     d3_geo_centroidDimension = 2;
@@ -5643,10 +5643,11 @@
   }
   function d3_geo_centroidLineStart() {
     var x0, y0, z0;
-    if (d3_geo_centroidDimension > 1) return;
-    if (d3_geo_centroidDimension < 1) {
-      d3_geo_centroidDimension = 1;
-      d3_geo_centroidW = d3_geo_centroidX = d3_geo_centroidY = d3_geo_centroidZ = 0;
+    if (d3_geo_centroidDimension !== 1) {
+      if (d3_geo_centroidDimension < 1) {
+        d3_geo_centroidDimension = 1;
+        d3_geo_centroidW = d3_geo_centroidX = d3_geo_centroidY = d3_geo_centroidZ = 0;
+      } else return;
     }
     d3_geo_centroid.point = function(λ, φ) {
       λ *= d3_radians;
@@ -5747,7 +5748,7 @@
           segments = d3.merge(segments);
           if (segments.length) {
             d3_geo_clipPolygon(segments, interpolate, listener);
-          } else if (visibleArea < -ε || invisible && invisibleArea < -ε) {
+          } else if (visibleArea < -ε2 || invisible && invisibleArea < -ε2) {
             listener.lineStart();
             interpolate(null, null, 1, listener);
             listener.lineEnd();
@@ -5793,14 +5794,14 @@
         var clean = ringListener.clean(), ringSegments = buffer.buffer(), segment, n = ringSegments.length;
         if (!n) {
           invisible = true;
-          invisibleArea += d3_geo_clipAreaRing(ring, -1);
+          invisibleArea += d3_geo_clipAreaRing(ring, d3_geo_clipRotationInvisible);
           ring = null;
           return;
         }
         ring = null;
         if (clean & 1) {
           segment = ringSegments[0];
-          visibleArea += d3_geo_clipAreaRing(segment, 1);
+          visibleArea += d3_geo_clipAreaRing(segment, d3_geo_clipRotation);
           var n = segment.length - 1, i = -1, point;
           listener.lineStart();
           while (++i < n) listener.point((point = segment[i])[0], point[1]);
@@ -5925,21 +5926,24 @@
       }
     };
   }
-  function d3_geo_clipAreaRing(ring, invisible) {
-    if (!(n = ring.length)) return 0;
-    var n, i = 0, area = 0, p = ring[0], λ = p[0], φ = p[1], cosφ = Math.cos(φ), x0 = Math.atan2(invisible * Math.sin(λ) * cosφ, Math.sin(φ)), y0 = 1 - invisible * Math.cos(λ) * cosφ, x1 = x0, x, y;
-    while (++i < n) {
-      p = ring[i];
-      cosφ = Math.cos(φ = p[1]);
-      x = Math.atan2(invisible * Math.sin(λ = p[0]) * cosφ, Math.sin(φ));
-      y = 1 - invisible * Math.cos(λ) * cosφ;
-      if (Math.abs(y0 - 2) < ε && Math.abs(y - 2) < ε) continue;
-      if (Math.abs(y) < ε || Math.abs(y0) < ε) {} else if (Math.abs(Math.abs(x - x0) - π) < ε) {
-        if (y + y0 > 2) area += 4 * (x - x0);
-      } else if (Math.abs(y0 - 2) < ε) area += 4 * (x - x1); else area += ((3 * π + x - x0) % (2 * π) - π) * (y0 + y);
-      x1 = x0, x0 = x, y0 = y;
+  function d3_geo_clipAreaRing(ring, rotate) {
+    d3_geo_area.polygonStart();
+    d3_geo_area.lineStart();
+    for (var i = 0, n = ring.length, p; i < n; ++i) {
+      p = rotate(ring[i]);
+      d3_geo_area.point(p[0] * d3_degrees, p[1] * d3_degrees);
     }
-    return area;
+    d3_geo_area.lineEnd();
+    d3_geo_area.polygonEnd();
+    return d3_geo_areaRing;
+  }
+  function d3_geo_clipRotation(point) {
+    var λ = point[0], φ = point[1], cosφ = Math.cos(φ);
+    return [ Math.atan2(Math.sin(λ) * cosφ, Math.sin(φ)), Math.asin(Math.max(-1, Math.min(1, -Math.cos(λ) * cosφ))) ];
+  }
+  function d3_geo_clipRotationInvisible(point) {
+    var λ = point[0] + π, φ = point[1], cosφ = Math.cos(φ);
+    return [ Math.atan2(Math.sin(λ) * cosφ, Math.sin(φ)), Math.asin(Math.max(-1, Math.min(1, -Math.cos(λ) * cosφ))) ];
   }
   var d3_geo_clipAntimeridian = d3_geo_clip(d3_true, d3_geo_clipAntimeridianLine, d3_geo_clipAntimeridianInterpolate);
   function d3_geo_clipAntimeridianLine(listener) {
@@ -6233,7 +6237,7 @@
     };
     path.projection = function(_) {
       if (!arguments.length) return projection;
-      projectStream = (projection = _) ? _.stream || d3_geo_pathProjectStream(_) : d3_identity;
+      projectStream = (projection = _).stream ? projection.stream : d3_geo_pathProjectStream(projection);
       return path;
     };
     path.context = function(_) {
@@ -6477,7 +6481,7 @@
     }
   };
   function d3_geo_areaRingStart() {
-    var λ00, φ00, λ1, λ0, φ0, cosφ0, sinφ0;
+    var λ00, φ00, λ1, φ1, λ0, φ0, cosφ0, sinφ0;
     d3_geo_area.point = function(λ, φ) {
       d3_geo_area.point = nextPoint;
       λ1 = λ0 = (λ00 = λ) * d3_radians, φ0 = (φ00 = φ) * d3_radians, cosφ0 = Math.cos(φ0), 
@@ -6491,7 +6495,7 @@
         var dλ = λ - λ0, cosdλ = Math.cos(dλ), d = Math.atan2(Math.sqrt((d = cosφ * Math.sin(dλ)) * d + (d = cosφ0 * sinφ - sinφ0 * cosφ * cosdλ) * d), sinφ0 * sinφ + cosφ0 * cosφ * cosdλ), s = (d + π + φ0 + φ) / 4;
         d3_geo_areaRing += (dλ < 0 && dλ > -π || dλ > π ? -4 : 4) * Math.atan(Math.sqrt(Math.abs(Math.tan(s) * Math.tan(s - d / 2) * Math.tan(s - π / 4 - φ0 / 2) * Math.tan(s - π / 4 - φ / 2))));
       }
-      λ1 = λ0, λ0 = λ, φ0 = φ, cosφ0 = cosφ, sinφ0 = sinφ;
+      λ1 = λ0, φ1 = φ0, λ0 = λ, φ0 = φ, cosφ0 = cosφ, sinφ0 = sinφ;
     }
     d3_geo_area.lineEnd = function() {
       nextPoint(λ00, φ00);

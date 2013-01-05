@@ -180,7 +180,7 @@ var drunkardsWalk = new Stochator({
 	max: 1
 }, function(a, b) { return a + b; });
 
-drunkardsWalk.value = 0; // Sets the initial value
+drunkardsWalk.setValue(0); // Sets the initial value
 drunkardsWalk.next(10); // [-1, -2, -2, -1, -1, -1, 0, 1, 1, 2]
 drunkardsWalk.next(10); // [3, 3, 3, 2, 1, 0, -1, 0, 0, 0]
 drunkardsWalk.next(10); // [0, 1, 0, -1, 0, 0, 1, 2, 1, 1]
@@ -198,7 +198,7 @@ var savingsAccountBalance = new Stochator({
 	max: 1.05
 }, addInterest);
 
-savingsAccountBalance.value = 1000; // Sets the initital value
+savingsAccountBalance.setValue(1000); // Sets the initital value
 savingsAccountBalance.next(10);
 /*
 [

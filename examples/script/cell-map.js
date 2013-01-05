@@ -21,7 +21,7 @@ var CellMap = (function() {
 
     CellMap.prototype.drawCells = function() {
         var polygons = this.cells.polygons,
-            classifications = this.cells.biomeClassifications,
+            classifications = this.cells.biomes,
             biomes = this.biomes,
             elevations = this.cells.elevations,
             moistures = this.cells.moistures,
@@ -61,14 +61,11 @@ var CellMap = (function() {
     };
 
     CellMap.prototype.drawRivers = function() {
-        // var rivers = this.cells.rivers;
-        // var riverSlopes = this.cells.riverSlopes;
         var watersheds = d3.merge(this.cells.watersheds);
         var setRiverData = function(d, i) {
             return Util.SVG.polygonString(watersheds[i], true);
         };
         var setRiverStyle = function(d, i) {
-            // return "stroke-width: " + Math.floor(riverSlopes[i] * 10) + "px";
             return "stroke-width: " + watersheds[i].length / 2 + "px";
         };
         var cellAttrs = {
@@ -102,16 +99,16 @@ var CellMap = (function() {
 
     CellMap.prototype.drawCellValues = function() {
         var centroids = this.cells.centroids;
-        var cellOutputs = this.cells.biomeClassifications.map(function(cellClass, index) {
+        var cellOutputs = this.cells.biomes.map(function(cellClass, index) {
             var area = this.cells.areas[index];
             var outputs = this.CELL_CLASS_OUTPUTS[cellClass];
             if (!outputs) {
                 console.log(cellClass);
             }
             return {
-                food: Math.ceil(outputs.food * area),
-                energy: Math.ceil(outputs.energy * area),
-                mineral: Math.ceil(outputs.food * area)
+                food: 1,
+                energy: 1,
+                mineral: 1
             };
         }, this);
 
@@ -227,21 +224,23 @@ var CellMap = (function() {
     };
 
     CellMap.prototype.logData = function() {
-        var classCounts = Util.Array.count(this.cells.biomeClassifications);
+        var classCounts = Util.Array.count(this.cells.biomes);
         var percentiles = [0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99];
         console.log("class counts", classCounts);
         console.log("moisture percentiles",
             Util.Array.getPercentiles(this.cells.moistures, percentiles));
-        console.log("riverMoisture percentiles",
-            Util.Array.getPercentiles(this.cells.riverMoistures, percentiles));
         console.log("elevation percentiles",
             Util.Array.getPercentiles(this.cells.elevations, percentiles));
         console.log("temperature percentiles",
             Util.Array.getPercentiles(this.cells.temperatures, percentiles));
-        var riversLength = this.cells.rivers.reduce(function(count, river) {
+
+        var countLengths = function(count, river) {
             return count + river.length;
+        };
+        var riversLength = this.cells.watersheds.reduce(function(count, watershed) {
+            return count + watershed.reduce(countLengths, 0);
         }, 0);
-        console.log("rivers", this.cells.rivers.length, "total length", riversLength);
+        console.log("rivers", this.cells.watersheds.length, "total length", riversLength);
     };
 
     CellMap.prototype.logCell = function(index) {

@@ -1,109 +1,3 @@
-var Biomes = (function() {
-
-    var BIOMES = {
-        "TROPICAL_RAINFOREST": "tropical_rainforest",
-        "TEMPERATE_RAINFOREST": "temperate_rainforest",
-        "FOREST": "forest",
-        "TROPICAL_FOREST": "tropical_forest",
-        "TAIGA": "taiga",
-        "SAVANNA": "savanna",
-        "PRAIRIE": "prairie",
-        "TUNDRA": "tundra",
-        "DESERT": "desert",
-        "OCEAN": "ocean",
-        "DEEPWATER": "deepwater",
-        "LAKE": "lake",
-        "SEA": "sea"
-    };
-
-    Biomes.prototype.WATER_BIOMES = [BIOMES.DEEPWATER, BIOMES.OCEAN, BIOMES.LAKE, BIOMES.SEA];
-
-    Biomes.prototype.BIOMES = BIOMES;
-
-    Biomes.prototype.MOISTURE_TEMPERATURE_MATRIX = [
-        [BIOMES.DESERT,              BIOMES.DESERT,               BIOMES.PRAIRIE, BIOMES.TAIGA, BIOMES.TUNDRA],
-        [BIOMES.SAVANNA,             BIOMES.SAVANNA,              BIOMES.PRAIRIE, BIOMES.TAIGA],
-        [BIOMES.TROPICAL_FOREST,     BIOMES.FOREST,               BIOMES.FOREST],
-        [BIOMES.TROPICAL_FOREST,     BIOMES.TEMPERATE_RAINFOREST],
-        [BIOMES.TROPICAL_RAINFOREST]
-    ];
-
-    Biomes.prototype.scales = {
-        "temperature": d3.scale.linear().clamp(true),
-        "moisture": d3.scale.linear().clamp(true).range([0.01, 0.99])
-    };
-
-    Biomes.prototype.classify = function(moisture, temperature, elevation) {
-        var adjustedTemperature = this.scales.temperature(temperature - (elevation / 6));
-        var quantizedMoisture = Math.floor(this.scales.moisture(moisture) * 5);
-        var quantizedTemperature = 4 - Math.floor(adjustedTemperature * 4);
-        var sum = quantizedMoisture + quantizedTemperature;
-        if (sum > 4) {
-            quantizedMoisture = Math.round(quantizedMoisture * 4 / sum);
-            quantizedTemperature = Math.round(quantizedTemperature * 4 / sum);
-        }
-
-        return this.MOISTURE_TEMPERATURE_MATRIX[quantizedMoisture][quantizedTemperature];
-    };
-
-    Biomes.prototype.INTERPOLATORS = {
-        "elevation": {
-            "color": d3.rgb(0, 0, 0),
-            "weight": 0.5
-        },
-        "moisture": {
-            "color": d3.rgb(16, 96, 96),
-            "weight": 0.5
-        },
-        "temperature": {
-            "color": d3.rgb(128, 128, 16),
-            "weight": 0.4
-        }
-    };
-
-    Biomes.prototype.COLORS = {
-        "sea": d3.rgb(0, 51, 119),
-        "lake": d3.rgb(17, 68, 136),
-        "tundra": d3.rgb(144, 180, 180),
-        "taiga": d3.rgb(17, 85, 51),
-        "forest": d3.rgb(42, 92, 42),
-        "tropical_forest": d3.rgb(34, 85, 34),
-        "temperate_rainforest": d3.rgb(17, 85, 34),
-        "tropical_rainforest": d3.rgb(17, 68, 34),
-        "prairie": d3.rgb(34, 85, 17),
-        "savanna": d3.rgb(51, 102, 17),
-        "desert": d3.rgb(128, 102, 17),
-        "deepwater": d3.rgb(0, 17, 85),
-        "ocean": d3.rgb(0, 28, 88)
-    };
-
-    Biomes.prototype.getStyle = function(biome, elevation, moisture, temperature) {
-        var color = this.COLORS[biome];
-        if (this.WATER_BIOMES.indexOf(biome) == -1) {
-            var interpolators = this.INTERPOLATORS;
-            var values = {
-                "elevation": elevation, "moisture": moisture, "temperature": temperature
-            };
-            var interpolate = function(property, color) {
-                var interpolator = interpolators[property];
-                var value = values[property];
-                return d3.interpolateRgb(color, interpolator.color)(value * interpolator.weight);
-            };
-            
-            for (var property in values) {
-                color = interpolate(property, color);
-            }
-        }
-
-        return "fill: " + color + "; stroke: " + color;
-    };
-
-    function Biomes() {}
-
-    return Biomes;
-
-})();
-
 var Cells = (function() {
 
     Cells.prototype.TYPES = {
@@ -111,48 +5,84 @@ var Cells = (function() {
         "land": "land"
     };
 
-    Cells.prototype.getPolygons = function() {
-        var initialPoints;
-        while (!initialPoints) {
-            var randomPoints = this.getRandomPoints(this.count);
-            try {
-                initialPoints = Util.Geom.relaxPoints(randomPoints, this.mask, 1);
-            } catch(e) {}
-        }
+    Cells.prototype.getInitialPolygons = function() {
+        var x = { min: 0, max: this.mask.width, kind: "integer" };
+        var y = { min: 0, max: this.mask.height, kind: "integer" };
+        var pointGenerator = new Stochator(x, y);
+        var randomPoints = pointGenerator.next(this.count);
+        var initialPoints = Util.Geom.relaxPoints(randomPoints, this.mask, 1);
+
         return Util.Geom.getClippedVoronoi(initialPoints, this.mask);
     };
 
-    Cells.prototype.setCentroids = function() {
-        this.centroids = [];
-        this.temperatures = [];
-        this.vertices = {};
-        var setCentroid = function(polygon, index) {
-            var centroid = Util.Geom.polygonCentroid(polygon);
-            this.centroids.push(centroid);
-            this.temperatures.push(this.getTemperature(centroid));
-            this.setVertices(polygon, index, this.vertices);
+    Cells.prototype.getInitialVertices = function(initialPolygons) {
+        var vertices = {};
+        initialPolygons.forEach(function(polygon, index) {
+            this.setVertices(polygon, index, vertices);
+        }, this);
+        return vertices;
+    };
 
-            var continentIndex = this.continents.getContainingContinent(centroid);
-            this.setParentContinent(index, this.continents.plates[continentIndex]);
+    Cells.prototype.getCentroids = function(polygons) {
+        return polygons.map(Util.Geom.polygonCentroid);
+    };
+
+    Cells.prototype.getParentContinents = function() {
+        return this.centroids.map(this.continents.getContainingContinent, this.continents);
+    };
+
+    Cells.prototype.getContinentCentralities = function() {
+        var getContinentCentrality = function(continent, index) {
+            return continent.getPointCentrality(this.centroids[index]);
         };
-        this.polygons.forEach(setCentroid, this);
+        return this.parentContinents.map(getContinentCentrality, this);
+    };
+
+    Cells.prototype.getTemperatures = function() {
+        var yMidpoint = this.mask.height / 2;
+        var getTemperature = function(centroid) {
+            var yCentrality = 1 - (Math.abs(yMidpoint - centroid[1]) / yMidpoint);
+            var getTropicalTemperature = function(yCentrality) {
+                return 0.8 + (yCentrality - 0.6) / 3;
+            };
+            return yCentrality > 0.6 ? getTropicalTemperature(yCentrality) : yCentrality;
+        };
+        return this.centroids.map(getTemperature);
+    };
+
+    Cells.prototype.getPolygons = function() {
+        var initialPolygons = this.getInitialPolygons();
+        this.vertices = this.getInitialVertices(initialPolygons);
+        var getCentroid = Util.Array.getter(this.getCentroids(initialPolygons));
+        var isEdgePoint = Util.Geom.edgeTester(this.mask.width, this.mask.height);
+        var coordMean = function(coord) {
+            if (isEdgePoint(coord)) return coord;
+            return Util.Geom.roundPoint(Util.Geom.pointMean(this.mapVertex(coord, getCentroid)));
+        };
+        var relaxPolygon = function(polygon) {
+            return Util.Geom.simplifyPolygon(polygon.map(coordMean, this));
+        };
+        return initialPolygons.map(relaxPolygon, this);
     };
 
     Cells.prototype.setVertices = function(polygon, index, vertices) {
-        var setVertex = function(vertex) {
-            var value = vertices[vertex] || [];
-            value.push(index);
-            vertices[vertex] = value;
+        var getVertex = Util.Obj.defaultGetter(vertices, []);
+        var addVertex = function(vertex) {
+            return getVertex(vertex).concat(index);
         };
-        polygon.map(Util.Geom.pointToString).forEach(setVertex);
+        var setVertex = function(vertex) {
+            vertices[vertex] = addVertex(vertex);
+        };
+        polygon.forEach(setVertex);
     };
 
     Cells.prototype.getVertices = function() {
         var vertices = {};
+        var averageArea = this.mask.area() / this.count;
         this.areas = [], this.landVertices = [];
         var getVertices = function(values, index) {
             var polygon = values[0], type = values[1];
-            this.areas.push(d3.geom.polygon(polygon).area() / this.averageArea);
+            this.areas.push(d3.geom.polygon(polygon).area() / averageArea);
             this.setVertices(polygon, index, vertices);
             if (type == "land") {
                 this.landVertices = this.landVertices.concat(polygon);
@@ -215,41 +145,11 @@ var Cells = (function() {
         return edges;
     };
 
-    Cells.prototype.relaxVertices = function() {
-        var getCentroid = Util.Array.getter(this.centroids);
-        var coordMean = function(coord) {
-            if (this.isEdgePoint(coord)) return coord;
-            return Util.Geom.roundPoint(Util.Geom.pointMean(this.mapVertex(coord, getCentroid)));
-        };
-        var relaxPolygon = function(polygon) {
-            return Util.Geom.simplifyPolygon(polygon.map(coordMean, this));
-        };
-        return this.polygons.map(relaxPolygon, this);
-    };
-
-    Cells.prototype.getTemperature = function(centroid) {
-        var yMidpoint = this.mask.height / 2;
-        var yCentrality = 1 - (Math.abs(yMidpoint - centroid[1]) / yMidpoint);
-        var getTropicalTemperature = function(yCentrality) {
-            return 0.8 + (yCentrality - 0.6) / 3;
-        };
-        return yCentrality > 0.6 ? getTropicalTemperature(yCentrality) : yCentrality;
-    };
-
-    Cells.prototype.parentContinents = [];
-    Cells.prototype.continentCentralities = [];
-
-    Cells.prototype.setParentContinent = function(index, continent) {
-        var centroid = this.centroids[index];
-        this.parentContinents[index] = continent;
-        this.continentCentralities[index] = continent.getPointCentrality(centroid);
-    };
-
-    Cells.prototype.getTypes = function() {
+    Cells.prototype.getTypes = function(edgePolygons) {
         var landProbability = { min: 0.2, max: 0.8, kind: "float" };
         var landProbabilityGenerator = new Stochator(landProbability);
         var landProbabilities = landProbabilityGenerator.next(this.count);
-        var properties = [landProbabilities, this.parentContinents, this.edgePolygons,
+        var properties = [landProbabilities, this.parentContinents, edgePolygons,
             this.continentCentralities];
         var getType = function(values, index) {
             var landProbability = values[0], continent = values[1], edgeCell = values[2],
@@ -260,27 +160,33 @@ var Cells = (function() {
         return Util.Array.multiMap(properties, getType, this);
     };
 
-    Cells.prototype.setNeighborTypes = function() {
-        this.oceanNeighbors = [], this.clusterExteriors = [];
-        var isOcean = Util.Function.equals("ocean");
+    Cells.prototype.getNeighborTypes = function() {
         var indexGetter = Util.Obj.attrGetter("index");
         var typeGetter = Util.Array.getter(this.types);
-        var setNeighborTypes = function(values, index) {
-            var type = values[0], edges = values[1], edgeCell = values[2];
-            var isSameType = Util.Function.equals(type);
-            var neighborTypes = edges.map(indexGetter).map(typeGetter);
-            var clusterExterior = edgeCell ||
-                neighborTypes.filter(isSameType).length < neighborTypes.length;
-            this.oceanNeighbors.push(neighborTypes.filter(isOcean).length / neighborTypes.length);
-            this.clusterExteriors.push(clusterExterior);
-        };
-
-        var properties = [this.types, this.edges, this.edgePolygons];
-        Util.Array.multiEach(properties, setNeighborTypes, this);
+        return this.edges.map(function(edges) {
+            return edges.map(indexGetter).map(typeGetter);
+        });
     };
 
-    Cells.prototype.getRiverMoistures = function() {
-        var riverVertices = this.riverVertices;
+    Cells.prototype.getOceanNeighbors = function(neighborTypes) {
+        var isOcean = Util.Function.equals("ocean");
+        return neighborTypes.map(function(neighborTypes) {
+            return neighborTypes.filter(isOcean).length / neighborTypes.length;
+        });
+    };
+
+    Cells.prototype.getClusterExteriors = function(neighborTypes, edgePolygons) {
+        var properties = [edgePolygons, neighborTypes, this.types];
+        var getClusterExterior = function(values) {
+            var edgePolygon = values[0], neighborTypes = values[1], type = values[2];
+            var isSameType = Util.Function.equals(type);
+            return edgePolygon ||
+                neighborTypes.filter(isSameType).length < neighborTypes.length;
+        };
+        return Util.Array.multiMap(properties, getClusterExterior);
+    };
+
+    Cells.prototype.getRiverMoistures = function(riverVertices) {
         var getLength = Util.Obj.attrGetter("length");
         var countRiverVertices = function(count, vertex) {
             if (riverVertices[Util.Geom.pointToString(vertex)]) return count + 1;
@@ -292,11 +198,11 @@ var Cells = (function() {
         return this.polygons.map(getRiverMoisture, this);
     };
 
-    Cells.prototype.getMoistures = function() {
+    Cells.prototype.getMoistures = function(riverMoistures, oceanNeighbors) {
         var moistureScale = d3.scale.linear().clamp(true);
         var moistureVariator = new Stochator({ min: -0.3, max: 0 });
         var moistureSeeds = moistureVariator.next(this.count);
-        var properties = [moistureSeeds, this.riverMoistures, this.oceanNeighbors];
+        var properties = [moistureSeeds, riverMoistures, oceanNeighbors];
         var getMoisture = function(values, index) {
             var moistureSeed = values[0], riverMoisture = values[1], oceanNeighbors = values[2];
             var moisture = Math.max(oceanNeighbors, riverMoisture);
@@ -305,23 +211,25 @@ var Cells = (function() {
         return Util.Array.multiMap(properties, getMoisture, this);
     };
 
-    Cells.prototype.getElevations = function() {
+    Cells.prototype.getElevations = function(containingClusters, clusterEdges) {
         var elevationScale = d3.scale.linear().clamp(true);
         var elevationVariator = new Stochator({ min: 0, max: 0.3 });
         var elevationSeeds = elevationVariator.next(this.count);
         var properties = [elevationSeeds, this.types, this.centroids, this.continentCentralities,
-            this.containingClusters, this.parentContinents];
+            containingClusters, this.parentContinents];
+
         var getElevation = function(values, index) {
             var elevationSeed = values[0], type = values[1], centroid = values[2],
                 continentCentrality = values[3], containingCluster = values[4],
                 parentContinents = values[5];
             if (type == "ocean") return 0.1;
 
-            var clusterEdges = this.clusterEdges[containingCluster];
-            var coastDistance = Util.Geom.distanceToPolygon(centroid, clusterEdges[0]);
+            var clusterEdge = clusterEdges[containingCluster];
+            var coastDistance = Util.Geom.distanceToPolygon(centroid, clusterEdge[0]);
             var elevationValue = coastDistance / parentContinents.vertexDistance + continentCentrality;
             return elevationScale(elevationSeed + elevationValue);
         };
+
         return Util.Array.multiMap(properties, getElevation, this);
     };
 
@@ -339,9 +247,8 @@ var Cells = (function() {
         return vertexElevations;
     };
 
-    Cells.prototype.getRivers = function() {
+    Cells.prototype.getRivers = function(vertexElevations) {
         var riverGenerator = new Stochator({ min: 0.25, max: 1 }, {});
-        var vertexElevations = this.vertexElevations;
         var _this = this;
         var vertices = this.vertices;
         var edges = this.edges;
@@ -364,7 +271,7 @@ var Cells = (function() {
             return getNeighborEdges(vertex).some(hasExteriorEdge);
         };
 
-        var getRiverVertices = function(vertex, elevation) {
+        var getRiverOrigins = function(vertex, elevation) {
             var seedValues = riverGenerator.next();
             if (elevation > seedValues[0] && seedValues[1] < 0.25 && !isExteriorVertex(vertex)) {
                 return vertex;
@@ -412,23 +319,16 @@ var Cells = (function() {
             return rivers;
         };
 
-        return Util.Obj.map(vertexElevations, getRiverVertices)
-            .filter(Boolean).map(getRiver).reduce(getUniqueRivers, []);
+        return Util.Obj.map(vertexElevations, getRiverOrigins).filter(Boolean)
+            .map(getRiver).reduce(getUniqueRivers, []);
     };
 
-    Cells.prototype.getRiverSlopes = function() {
-        var vertexElevations = this.vertexElevations;
-        var getRiverSlope = function(river) {
-            return vertexElevations[river[0]] - vertexElevations[river[river.length - 1]];
-        };
-        return this.rivers.map(getRiverSlope);
-    };
-
-    Cells.prototype.getWatersheds = function() {
+    Cells.prototype.getWatersheds = function(rivers) {
+        var riverRemover = new Stochator({});
         var sortByLongest = function(river1, river2) {
             return river2.length - river1.length;
         };
-        var riversByLength = this.rivers.sort(sortByLongest);
+        var riversByLength = rivers.sort(sortByLongest);
 
         return riversByLength.reduce(function(watersheds, river) {
             var watershed = [river];
@@ -455,17 +355,13 @@ var Cells = (function() {
 
     Cells.prototype.getRiverVertices = function() {
         var riverVertices = {};
-        var setRiverVertices = function(river) {
-            river.forEach(setRiverVertex);
-        };
-        var setRiverVertex = function(vertex) {
-            riverVertices[vertex] = true;
-        };
-        this.rivers.forEach(setRiverVertices);
+        var setRiverVertex = Util.Obj.valueSetter(riverVertices, true);
+        var setRiverVertices = function(river) { river.forEach(setRiverVertex); };
+        d3.merge(this.watersheds).forEach(setRiverVertices);
         return riverVertices;
     };
 
-    Cells.prototype.getClusters = function() {
+    Cells.prototype.getClusters = function(interiorEdges) {
         var getIndex = Util.Obj.attrGetter("index");
         var visitedIndexes = {};
         var getEdgeCluster = function(values, index) {
@@ -484,7 +380,7 @@ var Cells = (function() {
 
             addToCluster(startingIndex);
             while (queue.length) {
-                this.interiorEdges[queue.pop()].map(getIndex).forEach(addToCluster);
+                interiorEdges[queue.pop()].map(getIndex).forEach(addToCluster);
             }
 
             return { cellType: type, cells: cells };
@@ -494,12 +390,8 @@ var Cells = (function() {
     };
 
     Cells.prototype.getInteriorEdges = function(index) {
-        var isInteriorEdge = function(edge) {
-            return !edge.exterior && edge.points.length == 2;
-        };
-        var getInteriorEdges = function(edges) {
-            return edges.filter(isInteriorEdge);
-        };
+        var isInteriorEdge = function(edge) { return !edge.exterior && edge.points.length == 2; };
+        var getInteriorEdges = Util.Function.filter(isInteriorEdge);
         return this.edges.map(getInteriorEdges);
     };
 
@@ -513,8 +405,8 @@ var Cells = (function() {
         return containingClusters;
     };
 
-    Cells.prototype.getBiomeClassifications = function(biomes) {
-        var properties = [this.types, this.oceanNeighbors, this.elevations, this.temperatures,
+    Cells.prototype.getBiomeClassifications = function(biomes, oceanNeighbors) {
+        var properties = [this.types, oceanNeighbors, this.elevations, this.temperatures,
             this.moistures];
         var temperatureScale = d3.scale.linear().clamp(true);
         var moistureScale = d3.scale.linear().clamp(true);
@@ -532,26 +424,26 @@ var Cells = (function() {
         return Util.Array.multiMap(properties, getBiome, this);
     };
 
-    Cells.prototype.adjustClassesByCluster = function() {
+    Cells.prototype.adjustTypesByCluster = function() {
         var majorContinentCells = Math.sqrt(this.count / this.continents.continentCount);
         var minimumLandCells = new Stochator({ kind: "integer", min: 0, max: majorContinentCells });
         var adjustClasses = function(cluster, clusterIndex) {
             if (cluster.cellType == "ocean") {
                 if (cluster.cells.length < 3) {
-                    this.setClusterCellType(cluster, "lake", 0);
+                    this.setClusterType(cluster, "lake", 0);
                 } else if (cluster.cells.length < 100) {
-                    this.setClusterCellType(cluster, "sea", 0);
+                    this.setClusterType(cluster, "sea", 0);
                 }
             } else if (cluster.cellType == "land") {
                 if (minimumLandCells.next() > cluster.cells.length) {
-                    this.setClusterCellType(cluster, "ocean");
+                    this.setClusterType(cluster, "ocean");
                 }
             }
         };
         this.clusters.forEach(adjustClasses, this);
     };
 
-    Cells.prototype.setClusterCellType = function(cluster, type, elevation) {
+    Cells.prototype.setClusterType = function(cluster, type, elevation) {
         var setType = function(index) {
             this.types[index] = type;
             if (elevation != null) this.elevations[index] = elevation;
@@ -560,27 +452,8 @@ var Cells = (function() {
         cluster.cells.forEach(setType, this);
     };
 
-    Cells.prototype.getPointGenerator = function() {
-        var x = { min: 0, max: this.mask.width, kind: "integer" };
-        var y = { min: 0, max: this.mask.height, kind: "integer" };
-        var pointGenerator = new Stochator(x, y);
-        return pointGenerator.next;
-    };
-
-    Cells.prototype.getClusterCentroids = function() {
-        var getCentroid = Util.Array.getter(this.centroids);
-        var getClusterCentroid = function(cluster) {
-            return Util.Geom.pointMean(cluster.cells.map(getCentroid));
-        };
-        return this.clusters.map(getClusterCentroid, this);
-    };
-
-    Cells.prototype.getEdgeKey = function(index1, index2) {
-        return index1 < index2 ? [index1, index2] : [index2, index1];
-    };
-
-    Cells.prototype.getClusterEdges = function() {
-        var getClusterExterior = Util.Array.getter(this.clusterExteriors);
+    Cells.prototype.getClusterEdges = function(clusterExteriors) {
+        var getClusterExterior = Util.Array.getter(clusterExteriors);
         var getClusterCells = Util.Obj.attrGetter("cells");
         var getEdgeExterior = Util.Obj.attrGetter("exterior");
         var getEdgePoints = Util.Obj.attrGetter("points");
@@ -624,7 +497,7 @@ var Cells = (function() {
                 newClusters.push(clusterEdgePoints);
             }
 
-            var points = pointStrings.map(Util.Geom.stringToPoint);
+            var points = Util.Geom.stringsToPoints(pointStrings);
             points.push(points[0]);
             points.cellType = this.clusters[index].cellType;
             var polygons = [points];
@@ -635,64 +508,63 @@ var Cells = (function() {
                 });
             }, this);
 
-            return polygons.sort(function(polygon1, polygon2) {
+            var longestPolygon = function(polygon1, polygon2) {
                 return polygon2.length - polygon1.length;
-            });
+            };
+            return polygons.sort(longestPolygon);
 
         };
-        var clusterEdges = this.clusters.map(getClusterCells)
+        return this.clusters.map(getClusterCells)
             .map(getCellEdgePoints, this)
             .map(d3.merge)
             .map(getExteriorEdgePolygon, this);
-
-        return clusterEdges;
     };
 
     Cells.prototype.getEdgePolygons = function() {
-        return this.polygons.map(this.isEdgePolygon);
-    };
-
-    Cells.prototype.getMaskRadius = function() {
-        return Util.Geom.distance([0, 0], [this.mask.width, this.mask.height]) / 2;;
-    };
-
-    Cells.prototype.getAverageRadius = function() {
-        return this.maskRadius / Math.sqrt(this.count);
+        var isEdgePolygon = Util.Geom.polygonEdgeTester(this.mask.width, this.mask.height);
+        return this.polygons.map(isEdgePolygon);
     };
 
     function Cells(count, mask, continents, biomes) {
+        // Initialize instance properties
         this.count = count;
         this.mask = mask;
         this.continents = continents;
-        this.maskRadius = this.getMaskRadius();
-        this.averageArea = this.mask.area() / this.count;
-        this.averageRadius = this.getAverageRadius();
-        this.isEdgePoint = Util.Geom.edgeTester(this.mask.width, this.mask.height);
-        this.isEdgePolygon = Util.Geom.polygonEdgeTester(this.mask.width, this.mask.height);
-        this.getRandomPoints = this.getPointGenerator();
+
+        // Initialize cell polygons by relaxing the centroids and vertices of a random voronoi
+        // diagram with the dimensions of the browser viewport.
         this.polygons = this.getPolygons();
-        this.setCentroids();
-        this.polygons = this.relaxVertices();
-        this.edgePolygons = this.getEdgePolygons();
-        this.types = this.getTypes();
+        this.centroids = this.getCentroids(this.polygons);
+
+        this.parentContinents = this.getParentContinents();
+        this.continentCentralities = this.getContinentCentralities();
+        this.temperatures = this.getTemperatures();
+
+        var edgePolygons = this.getEdgePolygons();
+        this.types = this.getTypes(edgePolygons);
         this.vertices = this.getVertices();
         this.edges = this.getEdges();
-        this.setNeighborTypes();
-        this.interiorEdges = this.getInteriorEdges();
-        this.clusters = this.getClusters();
-        this.clusterCentroids = this.getClusterCentroids();
-        this.clusterEdges = this.getClusterEdges();
-        this.containingClusters = this.getContainingClusters();
-        this.elevations = this.getElevations();
-        this.adjustClassesByCluster();
-        this.vertexElevations = this.getVertexElevations();
-        this.rivers = this.getRivers();
-        this.watersheds = this.getWatersheds();
-        this.riverSlopes = this.getRiverSlopes();
-        this.riverVertices = this.getRiverVertices();
-        this.riverMoistures = this.getRiverMoistures();
-        this.moistures = this.getMoistures();
-        this.biomeClassifications = this.getBiomeClassifications(biomes);
+
+        var neighborTypes = this.getNeighborTypes();
+        var oceanNeighbors = this.getOceanNeighbors(neighborTypes);
+
+        var interiorEdges = this.getInteriorEdges();
+        this.clusters = this.getClusters(interiorEdges);
+
+        var clusterExteriors = this.getClusterExteriors(neighborTypes, edgePolygons);
+        var clusterEdges = this.getClusterEdges(clusterExteriors);
+        var containingClusters = this.getContainingClusters();
+        this.elevations = this.getElevations(containingClusters, clusterEdges);
+
+        this.adjustTypesByCluster();
+        var vertexElevations = this.getVertexElevations();
+        var rivers = this.getRivers(vertexElevations);
+        this.watersheds = this.getWatersheds(rivers);
+
+        var riverVertices = this.getRiverVertices();
+        var riverMoistures = this.getRiverMoistures(riverVertices);
+        this.moistures = this.getMoistures(riverMoistures, oceanNeighbors);
+        this.biomes = this.getBiomeClassifications(biomes, oceanNeighbors);
     }
 
     return Cells;

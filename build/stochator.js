@@ -1,5 +1,5 @@
 (function() {
-  var Set, Stochator, callFunctions, floatGenerator, integerGenerator, inverseNormalCumulativeDistribution, isType, randomBoundedFloat, randomBoundedInteger, randomCharacter, randomColor, randomNormallyDistributedFloat, randomSetMember, randomSetMemberWithoutReplacement, randomWeightedSetMember, setGenerator, shuffleSet,
+  var Set, Stochator, callFunctions, createGenerator, createGenerators, floatGenerator, getObjects, integerGenerator, inverseNormalCumulativeDistribution, isType, randomBoundedFloat, randomBoundedInteger, randomCharacter, randomColor, randomNormallyDistributedFloat, randomSetMember, randomSetMemberWithoutReplacement, randomWeightedSetMember, setGenerator, shuffleSet,
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __slice = Array.prototype.slice;
 
@@ -346,105 +346,105 @@
     }
   };
 
+  createGenerator = function(config) {
+    var generator, max, mean, min, replacement, shuffle, stdev, values, weights;
+    if (config.kind == null) config.kind = "float";
+    generator = (function() {
+      switch (config.kind) {
+        case "float":
+          min = config.min, max = config.max, mean = config.mean, stdev = config.stdev;
+          return floatGenerator(min, max, mean, stdev);
+        case "integer":
+          min = config.min, max = config.max;
+          return integerGenerator(min, max);
+        case "set":
+          values = config.values, replacement = config.replacement, shuffle = config.shuffle, weights = config.weights;
+          return setGenerator(values, replacement, shuffle, weights);
+        case "color":
+        case "rgb":
+          return randomColor(config.kind);
+        case "a-z":
+        case "A-Z":
+          return randomCharacter(config.kind === "a-z");
+      }
+    })();
+    if (!generator) {
+      throw Error("" + config.kind + " not a recognized kind.");
+    } else {
+      return generator;
+    }
+  };
+
+  getObjects = function(values) {
+    var value, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = values.length; _i < _len; _i++) {
+      value = values[_i];
+      if (isType("Object")(value)) _results.push(value);
+    }
+    return _results;
+  };
+
+  createGenerators = function(configs, mutator, stochator) {
+    var callGenerators, config, generators, _callGenerators,
+      _this = this;
+    if (configs[0] == null) configs[0] = {};
+    generators = (function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = configs.length; _i < _len; _i++) {
+        config = configs[_i];
+        _results.push(createGenerator(config));
+      }
+      return _results;
+    })();
+    callGenerators = function() {
+      return callFunctions(generators);
+    };
+    if (generators.length === 1) callGenerators = generators[0];
+    if (mutator) {
+      _callGenerators = callGenerators;
+      callGenerators = function() {
+        return stochator.value = mutator.call(stochator, _callGenerators(), stochator.value);
+      };
+    }
+    return function(times) {
+      var time, _results;
+      if (times) {
+        _results = [];
+        for (time = 1; 1 <= times ? time <= times : time >= times; 1 <= times ? time++ : time--) {
+          _results.push(callGenerators());
+        }
+        return _results;
+      } else {
+        return callGenerators();
+      }
+    };
+  };
+
   Stochator = (function() {
     var VERSION;
 
     VERSION = "0.3.1";
 
     function Stochator() {
-      var configs;
+      var configs, generatorConfigs, mutator, name, _ref, _ref2;
       configs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      this.setGenerator(configs);
-    }
-
-    Stochator.prototype.createGenerator = function(config) {
-      var generator, max, mean, min, replacement, shuffle, stdev, values, weights;
-      if (config.kind == null) config.kind = "float";
-      generator = (function() {
-        switch (config.kind) {
-          case "float":
-            min = config.min, max = config.max, mean = config.mean, stdev = config.stdev;
-            return floatGenerator(min, max, mean, stdev);
-          case "integer":
-            return integerGenerator(config.min, config.max);
-          case "set":
-            values = config.values, replacement = config.replacement, shuffle = config.shuffle, weights = config.weights;
-            return setGenerator(values, replacement, shuffle, weights);
-          case "color":
-          case "rgb":
-            return randomColor(config.kind);
-          case "a-z":
-          case "A-Z":
-            return randomCharacter(config.kind === "a-z");
-        }
-      })();
-      if (!generator) {
-        throw Error("" + config.kind + " not a recognized kind.");
-      } else {
-        return generator;
-      }
-    };
-
-    Stochator.prototype.createGenerators = function(configs, mutator) {
-      var callGenerators, caller, config, generators,
-        _this = this;
-      if (configs[0] == null) configs[0] = {};
-      generators = (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = configs.length; _i < _len; _i++) {
-          config = configs[_i];
-          _results.push(this.createGenerator(config));
-        }
-        return _results;
-      }).call(this);
-      if (!mutator) {
-        callGenerators = generators.length === 1 ? function() {
-          return callFunctions(generators)[0];
-        } : function() {
-          return callFunctions(generators);
-        };
-      } else {
-        caller = generators.length === 1 ? function() {
-          return callFunctions(generators)[0];
-        } : function() {
-          return callFunctions(generators);
-        };
-        callGenerators = function() {
-          return _this.value = mutator.call(_this, caller(), _this.value);
-        };
-      }
-      return function(times) {
-        var time, _results;
-        if (times) {
-          _results = [];
-          for (time = 1; 1 <= times ? time <= times : time >= times; 1 <= times ? time++ : time--) {
-            _results.push(callGenerators());
-          }
-          return _results;
-        } else {
-          return callGenerators();
-        }
-      };
-    };
-
-    Stochator.prototype.setGenerator = function(configs) {
-      var config, generatorConfigs, mutator, name, _i, _len, _ref, _ref2;
-      generatorConfigs = [];
-      for (_i = 0, _len = configs.length; _i < _len; _i++) {
-        config = configs[_i];
-        if (isType("Object")(config)) {
-          generatorConfigs.push(config);
-        } else {
-          break;
-        }
-      }
+      generatorConfigs = getObjects(configs);
       _ref = configs.slice(generatorConfigs.length), name = _ref[0], mutator = _ref[1];
       name || (name = "next");
       if (isType("Function")(name)) {
         _ref2 = ["next", name], name = _ref2[0], mutator = _ref2[1];
       }
-      return this[name] = this.createGenerators(generatorConfigs, mutator);
+      this[name] = createGenerators(generatorConfigs, mutator, this);
+    }
+
+    Stochator.prototype.setValue = function(value) {
+      this.value = value;
+    };
+
+    Stochator.prototype.getValue = function() {
+      return this.value;
     };
 
     Stochator.prototype.toString = function() {

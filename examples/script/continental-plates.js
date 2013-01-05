@@ -43,7 +43,7 @@ var ContinentalPlates = (function() {
                 closestIndex = continentIndex, closestDistance = distance;
             };
         });
-        return closestIndex;
+        return this.plates[closestIndex];
     };
 
     ContinentalPlates.prototype.getInitialCentroids = function() {

@@ -156,6 +156,10 @@ Util.Geom.stringToPoint = function(string) {
     return [parseInt(coords[0], 10), parseInt(coords[1], 10)];
 };
 
+Util.Geom.stringsToPoints = function(strings) {
+    return strings.map(Util.Geom.stringToPoint);
+};
+
 Util.Geom.simplifyPolygon = function(polygon) {
     return Util.Array.unique(polygon, function(point1, point2) {
         return point1[0] == point2[0] && point1[1] == point2[1];
@@ -172,9 +176,27 @@ Util.Obj.countValues = function(objs, attr) {
     }, {});
 };
 
+Util.Obj.getter = function(obj) {
+    return function(attr) {
+        return obj[attr];
+    };
+};
+
+Util.Obj.setter = function(obj) {
+    return function(attr, value) {
+        obj[attr] = value;
+    };
+}
+
 Util.Obj.attrGetter = function(attr) {
     return function(obj) {
         return obj[attr];
+    };
+};
+
+Util.Obj.valueSetter = function(obj, value) {
+    return function(attr) {
+        obj[attr] = value;
     };
 };
 
@@ -196,6 +218,12 @@ Util.Obj.map = function(obj, iterator, context) {
     return values;
 };
 
+Util.Obj.defaultGetter = function(obj, def) {
+    return function(attr) {
+        return attr in obj ? obj[attr] : def;
+    };
+};
+
 Util.SVG = {};
 
 Util.SVG.polygonString = function(points, open) {
@@ -204,15 +232,24 @@ Util.SVG.polygonString = function(points, open) {
 
 Util.Function = {};
 
-Util.Function.compose = function(fn1, fn2) {
-    return function() { fn2(fn1()); };
-};
-
 Util.Function.equals = function(compareValue) {
     return function(value) {
         return value === compareValue;
     };
 };
+
+Util.Function.filter = function(iterator, context) {
+    return function(array) {
+        return array.filter(iterator, context || this);
+    };
+};
+
+Util.Function.some = function(iterator, context) {
+    return function(array) {
+        return array.filter(iterator, context || this);
+    };
+};
+
 
 Util.Array = {};
 
@@ -261,19 +298,6 @@ Util.Array.count = function(array) {
     return counts;
 };
 
-Util.Array.zipMap = function() {
-    var arrayCount = arguments.length - 1;
-    var arrays = Array.prototype.slice.call(arguments, 0, arrayCount);
-    var iterator = Array.prototype.slice.call(arguments, arrayCount)[0];
-    var result = [];
-
-    for (var index = 0; index < arrays[0].length; index++) {
-        var values = arrays.map(Util.Array.indexGetter(index));
-        result.push(iterator.apply(this, values));
-    }
-    return result;
-};
-
 Util.Array.unique = function(array, comparator) {
     var uniqueValues = [];
     comparator = comparator || function(value1, value2) {
@@ -294,6 +318,17 @@ Util.Array.unique = function(array, comparator) {
         }
     }
     return uniqueValues;
+};
+
+Util.Array.maps = function(array, iterators, context) {
+    var _context = context || this;
+    var callIterators = function(value, index) {
+        var callIterator = function(value, iterator) {
+            return iterator.call(_context, value, index);
+        };
+        return iterators.reduce(callIterator, value);
+    };
+    return array.map(callIterators);
 };
 
 Util.Array.multiMap = function(arrays, iterator, context) {
@@ -325,6 +360,15 @@ Util.Array.indexFilter = function(array, iterator, context) {
     });
     return indexes;
 };
+
+Util.Array.objMap = function(array, iterator, context) {
+    var obj = {};
+    array.forEach(function(value, index) {
+        obj[value] = iterator.call(context || this, value, index);
+    });
+    return obj;
+};
+
 
 Util.Math = {};
 

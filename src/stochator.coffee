@@ -138,69 +138,60 @@ setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
     else
         -> randomSetMemberWithoutReplacement(set)
 
+createGenerator = (config) ->
+    config.kind ?= "float"
+    generator = switch config.kind
+        when "float"
+            { min, max, mean, stdev } = config
+            floatGenerator(min, max, mean, stdev)
+        when "integer"
+            { min, max } = config
+            integerGenerator(min, max)
+        when "set"
+            { values, replacement, shuffle, weights } = config
+            setGenerator(values, replacement, shuffle, weights)
+        when "color", "rgb" then randomColor(config.kind)
+        when "a-z", "A-Z" then randomCharacter(config.kind is "a-z")
+    if not generator
+        throw Error("#{ config.kind } not a recognized kind.")
+    else
+        generator
+
+getObjects = (values) -> (value for value in values when isType("Object")(value))
+
+createGenerators = (configs, mutator, stochator) ->
+    configs[0] ?= {}
+    generators = (createGenerator(config) for config in configs)
+
+    callGenerators = -> callFunctions(generators)
+    if generators.length is 1
+        callGenerators = generators[0]
+
+    if mutator
+        _callGenerators = callGenerators
+        callGenerators = => stochator.value = mutator.call(stochator, _callGenerators(), stochator.value)
+
+    (times) ->
+        if times
+            (callGenerators() for time in [1..times])
+        else
+            callGenerators()
+
 class Stochator
 
-    VERSION = "0.3.1"
+    VERSION = "0.3.4"
 
     constructor: (configs...) ->
-        @setGenerator(configs)
-
-    createGenerator: (config) ->
-        config.kind ?= "float"
-        generator = switch config.kind
-            when "float"
-                { min, max, mean, stdev, radix } = config
-                floatGenerator(min, max, mean, stdev, radix)
-            when "integer"
-                { min, max, radix } = config
-                integerGenerator(min, max, radix)
-            when "set"
-                { values, replacement, shuffle, weights } = config
-                setGenerator(values, replacement, shuffle, weights)
-            when "color", "rgb" then randomColor(config.kind)
-            when "a-z", "A-Z" then randomCharacter(config.kind is "a-z")
-        if not generator
-            throw Error("#{ config.kind } not a recognized kind.")
-        else
-            generator
-
-    createGenerators: (configs, mutator) ->
-        configs[0] ?= {}
-        generators = (@createGenerator(config) for config in configs)
-
-        if not mutator
-            callGenerators = if generators.length is 1
-                -> callFunctions(generators)[0]
-            else
-                -> callFunctions(generators)
-        else
-            caller = if generators.length is 1
-                -> callFunctions(generators)[0]
-            else
-                -> callFunctions(generators)
-
-            callGenerators = => @value = mutator.call(@, caller(), @value)
-
-        (times) ->
-            if times
-                (callGenerators() for time in [1..times])
-            else
-                callGenerators()
-
-    setGenerator: (configs) ->
-        generatorConfigs = []
-        for config in configs
-            if isType("Object")(config)
-                generatorConfigs.push(config)
-            else
-                break
-
+        generatorConfigs = getObjects(configs)
         [name, mutator] = configs[generatorConfigs.length..]
         name or= "next"
         if isType("Function")(name)
             [name, mutator] = ["next", name]
+        @[name] = createGenerators(generatorConfigs, mutator, @)
 
-        @[name] = @createGenerators(generatorConfigs, mutator)
+    setValue: (@value) ->
+
+    getValue: -> @value
 
     toString: ->
         "[object Stochator]"

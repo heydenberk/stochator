@@ -10,7 +10,7 @@ var Cells = (function() {
         var y = { min: 0, max: this.mask.height, kind: "integer" };
         var pointGenerator = new Stochator(x, y);
         var randomPoints = pointGenerator.next(this.count);
-        var initialPoints = Util.Geom.relaxPoints(randomPoints, this.mask, 1);
+        var initialPoints = Util.Geom.relaxPoints(randomPoints, this.mask, 2);
 
         return Util.Geom.getClippedVoronoi(initialPoints, this.mask);
     };
@@ -146,7 +146,7 @@ var Cells = (function() {
     };
 
     Cells.prototype.getTypes = function(edgePolygons) {
-        var landProbability = { min: 0.2, max: 0.8, kind: "float" };
+        var landProbability = { min: 0.25, max: 0.75, kind: "float" };
         var landProbabilityGenerator = new Stochator(landProbability);
         var landProbabilities = landProbabilityGenerator.next(this.count);
         var properties = [landProbabilities, this.parentContinents, edgePolygons,
@@ -434,11 +434,12 @@ var Cells = (function() {
                 } else if (cluster.cells.length < 100) {
                     this.setClusterType(cluster, "sea", 0);
                 }
-            } else if (cluster.cellType == "land") {
-                if (minimumLandCells.next() > cluster.cells.length) {
-                    this.setClusterType(cluster, "ocean");
-                }
             }
+            //  else if (cluster.cellType == "land") {
+            //     if (minimumLandCells.next() > cluster.cells.length) {
+            //         this.setClusterType(cluster, "ocean");
+            //     }
+            // }
         };
         this.clusters.forEach(adjustClasses, this);
     };

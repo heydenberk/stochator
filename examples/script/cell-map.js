@@ -1,24 +1,5 @@
 var CellMap = (function() {
 
-    CellMap.prototype.CELL_CLASS_OUTPUTS = {
-        "lake": { mineral: 0, food: 4, energy: 0 },
-        "ocean": { mineral: 0, food: 4, energy: 1 },
-        "deepwater": { mineral: 0, food: 0, energy: 0 },
-        "sea": { mineral: 0, food: 6, energy: 1 },
-        "mountain": { mineral: 8, food: 1, energy: 2 },
-        "snow": { mineral: 2, food: 0, energy: 2 },
-        "tundra": { mineral: 1, food: 1, energy: 1 },
-        "forest": { mineral: 2, food: 4, energy: 4 },
-        "prairie": { mineral: 1, food: 5, energy: 2 },
-        "taiga": { mineral: 1, food: 2, energy: 2 },
-        "tropical-forest": { mineral: 1, food: 6, energy: 2 },
-        "tropical-rainforest": { mineral: 1, food: 6, energy: 2 },
-        "temperate-rainforest": { mineral: 1, food: 6, energy: 2 },
-        "rainforest": { mineral: 1, food: 6, energy: 2 },
-        "savanna": { mineral: 2, food: 5, energy: 3 },
-        "desert": { mineral: 3, food: 0, energy: 3 }
-    };
-
     CellMap.prototype.drawCells = function() {
         var polygons = this.cells.polygons,
             classifications = this.cells.biomes,
@@ -83,7 +64,7 @@ var CellMap = (function() {
         var setCircleX = function(d, i) { return landVertices[i][0]; };
         var setCircleY = function(d, i) { return landVertices[i][1]; };
 
-        var vertexAttrs = { "class": "vertex", "r": 5, "cx": setCircleX, "cy": setCircleY };
+        var vertexAttrs = { "class": "vertex", "r": 4, "cx": setCircleX, "cy": setCircleY };
         var callback = function(nodes) { nodes.attr(vertexAttrs); };
 
         this.bindData(this.vertexNodes, landVertices, "svg:circle", callback);
@@ -99,31 +80,43 @@ var CellMap = (function() {
 
     CellMap.prototype.drawCellValues = function() {
         var centroids = this.cells.centroids;
+        var maxOutput = 0;
+        var maxOutputs = null;
         var cellOutputs = this.cells.biomes.map(function(cellClass, index) {
             var area = this.cells.areas[index];
-            var outputs = this.CELL_CLASS_OUTPUTS[cellClass];
-            if (!outputs) {
-                console.log(cellClass);
-            }
-            return {
-                food: 1,
-                energy: 1,
-                mineral: 1
-            };
+            var outputs = this.biomes.getOutput(cellClass, area);
+            var outputSum = Util.Array.sum(outputs);
+            if (!maxOutputs || outputSum > maxOutput) {
+                maxOutput = outputSum, maxOutputs = outputs;
+            } 
+
+            return outputs;
         }, this);
 
+        console.log(maxOutput, maxOutputs);
+
         var callback = function(nodes) {
+            var identity = function(d) { return d; };
+            var scaleSize = function(d) { return Math.sqrt(d) * 2.5 };
+            var colors = ["#DDD", "#FA6", "#F11"];
             nodes.attr("class", "cell-value")
-                .style("left", function(d, i) { return centroids[i][0] - 15 + "px"; })
-                .style("top", function(d, i) { return centroids[i][1] - 6  + "px"; })
-                .html(function(d, i) {
-                    var cellValue = cellOutputs[i];
-                    if (cellValue.food || cellValue.mineral || cellValue.energy) {
-                        return cellValue.food + ", " + cellValue.mineral + ", " + cellValue.energy;
-                    }
-                });
+                .attr("transform", function(d, i) { return "translate(" + centroids[i].join(", ") + ")"; })
+                .selectAll("circle").data(identity)
+                .enter().append("circle")
+                .attr("r", function(d) { return scaleSize(d) + "px"; })
+                .attr("cx", function(d, i) { return (i - 1) * 15 + "px"; })
+                .attr("cy", function(d) { return Math.sqrt(d) + "px"; })
+                .style("fill", function(d, i) { return colors[i]; });
+
+            nodes.selectAll("text").data(identity)
+                .enter().append("text")
+                .attr("class", "cell-value")
+                .text(function(d, i) { return d ? d : ""; })
+                .attr("x", function(d, i) { return (i - 1) * 15 + "px"; })
+                .attr("y", function(d) { return Math.sqrt(d) + scaleSize(d) / 2 + 1 + "px"; })
+                .style("font-size", function(d) { return scaleSize(d) * 2 + "px "; });
         };
-        this.bindData(this.cellValueNodes, cellOutputs, "div", callback);
+        this.bindData(this.cellValueNodes, cellOutputs, "g", callback);
             
     };
 
@@ -140,7 +133,7 @@ var CellMap = (function() {
     };
 
     CellMap.prototype.getCellValueNodes = function() {
-        return d3.select("#mask").selectAll("div.cell-value");
+        return this.svg.selectAll("div.cell-value");
     };
 
     CellMap.prototype.getContinentBoundaryNodes = function() {
@@ -167,6 +160,8 @@ var CellMap = (function() {
         this.drawCells();
         this.drawClusters();
         this.drawRivers();
+        this.drawVertices();
+        this.drawCellValues();
     };
 
     CellMap.prototype.bindData = function(nodes, data, element, callback) {
@@ -186,17 +181,25 @@ var CellMap = (function() {
     };
 
     CellMap.prototype.zoomPan = function(scaleCoefficient, centerPoint) {
-        var scale = "scale(" + scaleCoefficient + "," + scaleCoefficient + ")";
-        var transforms = [scale];
-        if (centerPoint) {
-            var translatePoint = [
-                this.mask.width / 2 - centerPoint[0],
-                this.mask.height / 2 - centerPoint[1]
-            ];
-            var translate = "translate(" + translatePoint.join("px, ") + "px)";
-            transforms.push(translate);
+        var container = d3.select("#container");
+        var maskMidpoint = [this.mask.width * 0.5, this.mask.height * 0.5];
+        if (scaleCoefficient && centerPoint) {
+            var currentMidpoint = [maskMidpoint[0] * 0.9, maskMidpoint[1] * 0.9];
+            var offset = [centerPoint[0] * 2 - currentMidpoint[0], centerPoint[1] * 2 - currentMidpoint[1]];
+            var x = Util.Math.clamp(offset[0], 0, maskMidpoint[0] * 3);
+            var y = Util.Math.clamp(offset[1], 0, maskMidpoint[1] * 3);
+
+            container.style("zoom", scaleCoefficient).style("padding", "10%");
+
+            this.svg.attr("class", "zoom-" + scaleCoefficient);
+            document.body.scrollLeft = x;
+            document.body.scrollTop = y;
+        } else {
+            container.style("zoom", 1).style("padding", "0");
+            this.svg.attr("class", "");
+            document.body.scrollLeft = 0;
+            document.body.scrollTop = 0;
         }
-        this.svg[0][0].style.webkitTransform = transforms.join(" ");
     };
 
     CellMap.prototype.isZoomed = false;
@@ -208,9 +211,9 @@ var CellMap = (function() {
             .on("dblclick", function() {
                 if (_this.isZoomed) {
                     _this.isZoomed = false;
-                    _this.zoomPan(1);
+                    _this.zoomPan();
                 } else {
-                    _this.isZoomed = [_this.mask.width / 2, _this.mask.height / 2];
+                    _this.isZoomed = true;
                     _this.zoomPan(2, [d3.event.x, d3.event.y]);
                 }
             });
@@ -233,6 +236,8 @@ var CellMap = (function() {
             Util.Array.getPercentiles(this.cells.elevations, percentiles));
         console.log("temperature percentiles",
             Util.Array.getPercentiles(this.cells.temperatures, percentiles));
+        console.log("area percentiles",
+            Util.Array.getPercentiles(this.cells.areas, percentiles));
 
         var countLengths = function(count, river) {
             return count + river.length;
@@ -244,8 +249,8 @@ var CellMap = (function() {
     };
 
     CellMap.prototype.logCell = function(index) {
+        console.log("Click", [d3.event.x, d3.event.y]);
         console.log({
-            clusterIndex: this.cells.containingClusters[index],
             elevation: this.cells.elevations[index],
             index: index,
             temperature: this.cells.temperatures[index]
@@ -258,10 +263,26 @@ var CellMap = (function() {
     };
 
     function CellMap(cellCount) {
+        
+        console.profile('map geometry');
         this.setMapGeometry();
+        console.profileEnd('map geometry');
+        
+        console.profile('biomes');
         this.biomes = new Biomes();
+        console.profileEnd('biomes');
+        
+        console.profile('continents');
         this.continents = new ContinentalPlates(cellCount, this.mask);
+        console.profileEnd('continents');
+        
+        console.profile('cells');
         this.cells = new Cells(cellCount, this.mask, this.continents, this.biomes);
+        console.profileEnd('cells');
+
+        console.profile('draw');
+        this.draw();
+        console.profileEnd('draw');
     }
     return CellMap;
 

@@ -1,7 +1,5 @@
-
-
 html, body {
-  background: #001955;
+  background: #015;
   font-family: sans-serif;
   height: 100%;
   margin: 0;
@@ -14,9 +12,8 @@ div#header {
   text-align: center;
 }
 
-svg#diagram {
+svg#map {
   display: block;
-  margin-top: 0;
   transition: all 0.5s;
   -webkit-transition: all 0.5s;
 }
@@ -27,109 +24,20 @@ path.continent {
   stroke-opacity: 1;
 }
 
-path.cell {
-  fill: none;
-  pointer-events: all;
-}
-
-path.cell.sea {
-  fill: #037;
-  stroke: #037;
-}
-
-path.cell.lake {
-  fill: #148;
-  stroke: #148;
-}
-
-path.cell.mountain {
-  fill: #1D1A18;
-  stroke: #1D1A18;
-}
-
-path.cell.snow {
-  fill: #8CF;
-  stroke: #8CF;
-}
-
-path.cell.tundra {
-  fill: #341;
-  stroke: #341;
-}
-
-path.cell.taiga {
-  fill: #153;
-  stroke: #153;
-}
-
-path.cell.forest {
-  fill: #2A5C2A;
-  stroke: #2A5C2A;
-}
-
-path.cell.tropical_forest {
-  fill: #252;
-  stroke: #252;
-}
-
-path.cell.temperate_rainforest {
-  fill: #152;
-  stroke: #152;
-}
-
-path.cell.tropical_rainforest {
-  fill: #142;
-  stroke: #142;
-}
-
-path.cell.prairie {
-  fill: #251;
-  stroke: #251;
-}
-
-path.cell.savanna {
-  fill: #361;
-  stroke: #361;
-}
-
-path.cell.desert {
-  fill: #561;
-  stroke: #561;
-}
-
 path.river {
   fill: none;
   stroke: #002890;
   stroke-width: 5px;
 }
 
-path.cell.elevation-8 {
-  fill: #132;
-  stroke: #132;
-}
-
-path.cell.elevation-9 {
-  fill: #1D3D2D;
-  stroke: #1D3D2D;
-}
-
-path.cell.elevation-10 {
-  fill: #143B24;
-  stroke: #143B24;
-}
-
 circle.vertex {
   fill: #FFF;
-  fill-opacity: 0.5;
-}
-
-path.cell.ocean {
+  fill-opacity: 0.75;
   display: none;
 }
 
 path.cell.deepwater {
-  fill: #015;
-  stroke: #015;
+  display: none;
 }
 
 path.cluster {
@@ -147,6 +55,9 @@ path.cluster.ocean {
 
 #mask {
   background: url('noise.png');
+  color: #FFF;
+  font-size: 1.5em;
+  padding: 2em;
   pointer-events: none;
   position: absolute;
   top: 0;
@@ -155,9 +66,37 @@ path.cluster.ocean {
   right: 0;
 }
 
-#mask div.cell-value {
-  color: #FFF;
-  position: absolute;
-  font-size: 10px;
-  text-shadow: 0.5px 1px 1px rgba(0, 0, 0, 0.5);
+text.cell-value {
+  visibility: hidden;
+}
+
+svg#map g.cell-value circle {
+  visibility: hidden;
+  fill-opacity: 0.25;
+}
+
+svg#map path.cell {
+  stroke: none;
+}
+
+svg#map.zoom-2 g.cell-value circle {
+  fill-opacity: 0.5;
+  visibility: visible;
+}
+
+svg#map.zoom-2 path.cell {
+  stroke: #FFF !important;
+  stroke-opacity: 0.1;
+  stroke-width: 0.5px;
+}
+
+svg#map.zoom-2 text.cell-value {
+  visibility: visible;
+  fill: #000;
+  font-size: 8px;
+  font-weight; bold;
+  text-anchor: middle;
+  /*text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.25);*/
+  user-select: none;
+  -webkit-user-select: none;
 }

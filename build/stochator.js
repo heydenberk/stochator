@@ -1,5 +1,5 @@
 (function() {
-  var Set, Stochator, callFunctions, createGenerator, createGenerators, floatGenerator, getObjects, integerGenerator, inverseNormalCumulativeDistribution, isType, randomBoundedFloat, randomBoundedInteger, randomCharacter, randomColor, randomNormallyDistributedFloat, randomSetMember, randomSetMemberWithoutReplacement, randomWeightedSetMember, setGenerator, shuffleSet,
+  var Set, Stochator, callFunctions, createGenerator, createGenerators, floatGenerator, getObjects, integerGenerator, inverseNormalCumulativeDistribution, isType, randomBoundedFloat, randomBoundedInteger, randomCharacter, randomColor, randomNormallyDistributedFloat, randomSetMember, randomSetMemberWithoutReplacement, randomWeightedSetMember, setGenerator, shuffleSet, wrapNumberGeneratorWithRadix,
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __slice = Array.prototype.slice;
 
@@ -295,24 +295,34 @@
     return values;
   };
 
-  floatGenerator = function(min, max, mean, stdev) {
-    if (mean && stdev) {
-      return function() {
-        return randomNormallyDistributedFloat(mean, stdev, min, max);
-      };
-    } else {
-      return function() {
-        return randomBoundedFloat(min, max);
-      };
-    }
+  floatGenerator = function(min, max, mean, stdev, radix) {
+    var generator;
+    generator = mean && stdev ? function() {
+      return randomNormallyDistributedFloat(mean, stdev, min, max);
+    } : function() {
+      return randomBoundedFloat(min, max);
+    };
+    return wrapNumberGeneratorWithRadix(generator, radix);
   };
 
-  integerGenerator = function(min, max) {
+  integerGenerator = function(min, max, radix) {
+    var generator;
     if (min == null) min = 0;
     if (max == null) max = 1;
-    return function() {
+    generator = function() {
       return randomBoundedInteger(min, max);
     };
+    return wrapNumberGeneratorWithRadix(generator, radix);
+  };
+
+  wrapNumberGeneratorWithRadix = function(generator, radix) {
+    if (!radix) {
+      return generator;
+    } else {
+      return function() {
+        return generator().toString(radix);
+      };
+    }
   };
 
   setGenerator = function(values, replacement, shuffle, weights) {
@@ -425,7 +435,7 @@
   Stochator = (function() {
     var VERSION;
 
-    VERSION = "0.3.1";
+    VERSION = "0.3.4";
 
     function Stochator() {
       var configs, generatorConfigs, mutator, name, _ref, _ref2;

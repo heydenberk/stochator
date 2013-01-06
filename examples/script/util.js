@@ -250,6 +250,26 @@ Util.Function.some = function(iterator, context) {
     };
 };
 
+Util.Function.curry = function() {
+    var func = arguments[0];
+    var args = [].slice.call(arguments, 1);
+    return function() {
+        return func.apply(func, args.concat([].slice.call(arguments)));
+    };
+};
+
+Util.Function.when = function(condition, func, context) {
+    var _context = context || this;
+    return function() {
+        if (condition.apply(_context, arguments)) return func.apply(_context, arguments);
+    };
+};
+
+Util.Function.unless = function(condition, func, context) {
+    var _context = context || this;
+    var notCondition = function() { return !condition.apply(_context, arguments); };
+    return Util.Function.when(notCondition, func, _context);
+};
 
 Util.Array = {};
 
@@ -385,9 +405,12 @@ Util.Math.mean = function(numbers) {
     return Util.Array.sum(numbers) / numbers.length;
 };
 
+Util.Math.multiply = function(number1, number2) {
+    return number1 * number2;
+};
+
 Util.Math.geometricMean = function(numbers) {
-    var multiply = function(number1, number2) { return number1 * number2; };
-    return Math.pow(numbers.reduce(multiply, 1), 1 / numbers.length);
+    return Math.pow(numbers.reduce(Util.Math.multiply, 1), 1 / numbers.length);
 };
 
 Util.Math.add = function(number1, number2) {

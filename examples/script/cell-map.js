@@ -61,13 +61,24 @@ var CellMap = (function() {
 
     CellMap.prototype.drawVertices = function() {
         var landVertices = this.cells.landVertices;
-        var setCircleX = function(d, i) { return landVertices[i][0]; };
-        var setCircleY = function(d, i) { return landVertices[i][1]; };
+        var getVertex = Util.Obj.getter(this.cells.vertices);
+        var getCentroid = Util.Array.getter(this.cells.centroids);
+        var setMarkerData = function(d, i) {
+            var vertex = landVertices[i];
+            var getMarkerPoint = function(centroid) {
+                return [vertex[0] * 0.8 + centroid[0] * 0.2, vertex[1] * 0.8 + centroid[1] * 0.2]
+            };
+            var markerPoints = getVertex(vertex).map(getCentroid).map(getMarkerPoint);
+            return Util.SVG.polygonString(markerPoints);
+        };
+        var setX = function(d, i) { return landVertices[i][0]; };
+        var setY = function(d, i) { return landVertices[i][1]; };
 
-        var vertexAttrs = { "class": "vertex", "r": 4, "cx": setCircleX, "cy": setCircleY };
+        var vertexAttrs = { "class": "vertex-marker", "x": setX, "y": setY, "d": setMarkerData };
         var callback = function(nodes) { nodes.attr(vertexAttrs); };
 
-        this.bindData(this.vertexNodes, landVertices, "svg:circle", callback);
+
+        this.bindData(this.vertexNodes, landVertices, "svg:path", callback);
     };
 
     CellMap.prototype.hideVertices = function() {
@@ -99,7 +110,7 @@ var CellMap = (function() {
             var identity = function(d) { return d; };
             var scaleSize = function(d) { return Math.sqrt(d) * 2.5 };
             var colors = ["#DDD", "#FA6", "#F11"];
-            nodes.attr("class", "cell-value")
+            nodes.classed("cell-value", true)
                 .attr("transform", function(d, i) { return "translate(" + centroids[i].join(", ") + ")"; })
                 .selectAll("circle").data(identity)
                 .enter().append("circle")
@@ -110,7 +121,7 @@ var CellMap = (function() {
 
             nodes.selectAll("text").data(identity)
                 .enter().append("text")
-                .attr("class", "cell-value")
+                .classed("cell-value", true)
                 .text(function(d, i) { return d ? d : ""; })
                 .attr("x", function(d, i) { return (i - 1) * 15 + "px"; })
                 .attr("y", function(d) { return Math.sqrt(d) + scaleSize(d) / 2 + 1 + "px"; })
@@ -125,7 +136,7 @@ var CellMap = (function() {
     };
 
     CellMap.prototype.getVertexNodes = function() {
-        return this.svg.selectAll("circle.vertex");
+        return this.svg.selectAll("path.vertex-marker");
     };
 
     CellMap.prototype.getClusterNodes = function() {
@@ -144,9 +155,13 @@ var CellMap = (function() {
         return this.svg.selectAll("path.river");
     };
 
+    CellMap.prototype.getContainerNode = function() {
+        return d3.select("div#container");
+    };
 
     CellMap.prototype.getNodes = function() {
         this.svg = this.initializeSvg();
+        this.container = this.getContainerNode();
         this.cellNodes = this.getCellNodes();
         this.clusterNodes = this.getClusterNodes();
         this.vertexNodes = this.getVertexNodes();
@@ -191,32 +206,23 @@ var CellMap = (function() {
 
             container.style("zoom", scaleCoefficient).style("padding", "10%");
 
-            this.svg.attr("class", "zoom-" + scaleCoefficient);
+            this.svg.classed("zoom-" + scaleCoefficient, true);
             document.body.scrollLeft = x;
             document.body.scrollTop = y;
         } else {
             container.style("zoom", 1).style("padding", "0");
-            this.svg.attr("class", "");
+            this.svg.classed("zoom-" + this.zoom, false);
             document.body.scrollLeft = 0;
             document.body.scrollTop = 0;
         }
+        this.zoom = scaleCoefficient;
     };
 
-    CellMap.prototype.isZoomed = false;
+    CellMap.prototype.zoom = 1;
 
     CellMap.prototype.initializeSvg = function() {
-        var _this = this;
-        return d3.select("svg#map")
-            .attr({ "width": this.mask.width, "height": this.mask.height })
-            .on("dblclick", function() {
-                if (_this.isZoomed) {
-                    _this.isZoomed = false;
-                    _this.zoomPan();
-                } else {
-                    _this.isZoomed = true;
-                    _this.zoomPan(2, [d3.event.x, d3.event.y]);
-                }
-            });
+        var size = { "width": this.mask.width, "height": this.mask.height };
+        return d3.select("svg#map").attr(size);
     };
 
     CellMap.prototype.setMapGeometry = function() {

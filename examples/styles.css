@@ -30,12 +30,6 @@ path.river {
   stroke-width: 5px;
 }
 
-circle.vertex {
-  fill: #FFF;
-  fill-opacity: 0.75;
-  display: none;
-}
-
 path.cell.deepwater {
   display: none;
 }
@@ -53,13 +47,13 @@ path.cluster.ocean {
   display: none;
 }
 
-#mask {
+div#mask {
   background: url('noise.png');
   color: #FFF;
   font-size: 1.5em;
   padding: 2em;
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
@@ -71,12 +65,21 @@ text.cell-value {
 }
 
 svg#map g.cell-value circle {
-  visibility: hidden;
+  /*visibility: hidden;*/
   fill-opacity: 0.25;
 }
 
 svg#map path.cell {
   stroke: none;
+}
+
+svg#map path.vertex-marker {
+  visibility: hidden;
+}
+
+svg#map path.vertex-marker.placement {
+  visibility: visible;
+  zoom: 2;
 }
 
 svg#map.zoom-2 g.cell-value circle {
@@ -88,6 +91,13 @@ svg#map.zoom-2 path.cell {
   stroke: #FFF !important;
   stroke-opacity: 0.1;
   stroke-width: 0.5px;
+}
+
+svg#map.zoom-2 path.vertex-marker {
+  stroke: none;
+  fill: #DD8;
+  fill-opacity: 0.75;
+  visibility: visible;
 }
 
 svg#map.zoom-2 text.cell-value {

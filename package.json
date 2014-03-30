@@ -1,0 +1,20 @@
+{
+    "bugs": "http://github.com/heydenberk/stochator/issues",
+    "description": "A tiny library providing for creating a variety of random value generators.",
+    "devDependencies": {
+        "coffe-script": ">=1.0.1"
+    },
+    "homepage": "https://github.com/heydenberk/stochator",
+    "keywords": ["random", "numbers", "values", "color", "string", "integer", "array", "shuffle", "set", "markov", "chain", "generator", "prng", "normal", "distribution"],
+    "license": "MPLv2",
+    "main": "build/stochator.js",
+    "name": "stochator",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/heydenberk/stochator"
+    },
+    "scripts": {
+        "prepublish": "make"
+    },
+    "version": "0.3.4"
+}

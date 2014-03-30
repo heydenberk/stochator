@@ -5,8 +5,6 @@ isFunc = isType("Function")
 
 isObject = isType("Object")
 
-callFunctions = (fns) -> (fn() for fn in fns)
-
 randomBoundedFloat = (min = 0, max = 1) ->
     spread = max - min
     Math.random() * spread + min
@@ -133,6 +131,33 @@ setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
             -> randomSetMember(set)
     else
         -> randomSetMemberWithoutReplacement(set)
+
+createGenerator = (config) ->
+    config.kind ?= "float"
+    generator = switch config.kind
+        when "float"
+            { min, max, mean, stdev } = config
+            floatGenerator(min, max, mean, stdev)
+        when "integer"
+            integerGenerator(config.min, config.max)
+        when "set"
+            { values, replacement, shuffle, weights } = config
+            setGenerator(values, replacement, shuffle, weights)
+        when "color", "rgb" then randomColor(config.kind)
+        when "a-z", "A-Z" then randomCharacter(config.kind is "a-z")
+    if not generator
+        throw Error("#{ config.kind } not a recognized kind.")
+    else
+        generator
+
+getNextValueGenerator = (configs) ->
+    configs[0] ?= {}
+    generators = (createGenerator(config) for config in configs)
+    if generators.length is 1
+        -> generators[0]()
+    else
+        -> (generator() for generator in generators)
+
 
 class Stochator
 

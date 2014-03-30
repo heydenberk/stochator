@@ -192,13 +192,7 @@ class Stochator
 
     getValue: (value) -> @_value
 
-    setGenerator: (configs) ->
-        generatorConfigs = []
-        for config in configs
-            if isType("Object")(config)
-                generatorConfigs.push(config)
-            else
-                break
+    mutate: (value) -> value
 
     setValue: (value) -> @_value = value
 

@@ -1,6 +1,10 @@
 isType = (type) ->
     (arg) -> Object::toString.call(arg) == "[object #{ type }]"
 
+isFunc = isType("Function")
+
+isObject = isType("Object")
+
 callFunctions = (fns) -> (fn() for fn in fns)
 
 randomBoundedFloat = (min = 0, max = 1) ->

@@ -132,7 +132,7 @@ setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
 
 class Stochator
 
-    VERSION = "0.3.1"
+    VERSION = "0.3.4"
 
     constructor: (configs...) ->
         @setGenerator(configs)

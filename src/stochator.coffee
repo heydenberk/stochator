@@ -1,7 +1,9 @@
 isType = (type) ->
     (arg) -> Object::toString.call(arg) == "[object #{ type }]"
 
-callFunctions = (fns) -> (fn() for fn in fns)
+isFunc = isType("Function")
+
+isObject = isType("Object")
 
 randomBoundedFloat = (min = 0, max = 1) ->
     spread = max - min
@@ -130,71 +132,73 @@ setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
     else
         -> randomSetMemberWithoutReplacement(set)
 
+createGenerator = (config) ->
+    config.kind ?= "float"
+    generator = switch config.kind
+        when "float"
+            { min, max, mean, stdev } = config
+            floatGenerator(min, max, mean, stdev)
+        when "integer"
+            integerGenerator(config.min, config.max)
+        when "set"
+            { values, replacement, shuffle, weights } = config
+            setGenerator(values, replacement, shuffle, weights)
+        when "color", "rgb" then randomColor(config.kind)
+        when "a-z", "A-Z" then randomCharacter(config.kind is "a-z")
+    if not generator
+        throw Error("#{ config.kind } not a recognized kind.")
+    else
+        generator
+
+getNextValueGenerator = (configs) ->
+    configs[0] ?= {}
+    generators = (createGenerator(config) for config in configs)
+    if generators.length is 1
+        -> generators[0]()
+    else
+        -> (generator() for generator in generators)
+
+
 class Stochator
 
-    VERSION = "0.3.1"
+    VERSION = "0.3.4"
 
-    constructor: (configs...) ->
-        @setGenerator(configs)
-
-    createGenerator: (config) ->
-        config.kind ?= "float"
-        generator = switch config.kind
-            when "float"
-                { min, max, mean, stdev } = config
-                floatGenerator(min, max, mean, stdev)
-            when "integer"
-                integerGenerator(config.min, config.max)
-            when "set"
-                { values, replacement, shuffle, weights } = config
-                setGenerator(values, replacement, shuffle, weights)
-            when "color", "rgb" then randomColor(config.kind)
-            when "a-z", "A-Z" then randomCharacter(config.kind is "a-z")
-        if not generator
-            throw Error("#{ config.kind } not a recognized kind.")
-        else
-            generator
-
-    createGenerators: (configs, mutator) ->
-        configs[0] ?= {}
-        generators = (@createGenerator(config) for config in configs)
-
-        if not mutator
-            callGenerators = if generators.length is 1
-                -> callFunctions(generators)[0]
+    constructor: (configs..., mutator=null, name="next") ->
+        # If the last arg is an object, all args are config args.
+        # If the penultimate arg is an object, check whether the last arg
+        # is a string (hence, the name) or a function (hence, the mutator).
+        if isObject(name)
+            configs[configs.length..configs.length + 2] = [mutator, name]
+            [mutator, name] = [null, "next"]
+        else if isObject(mutator)
+            configs[configs.length] = mutator
+            [mutator, name] = if isFunc(name)
+                [name, "next"]
             else
-                -> callFunctions(generators)
-        else
-            caller = if generators.length is 1
-                -> callFunctions(generators)[0]
-            else
-                -> callFunctions(generators)
+                [null, name]
 
-            callGenerators = => @value = mutator.call(@, caller(), @value)
+        # If the mutator is provided, override the default identity func.
+        if mutator
+            @mutate = (nextValue) => mutator(nextValue, @getValue())
 
-        (times) ->
-            if times
-                (callGenerators() for time in [1..times])
-            else
-                callGenerators()
+        # Transform the configs to a func to get the next value.
+        getNext = getNextValueGenerator(configs)
 
-    setGenerator: (configs) ->
-        generatorConfigs = []
-        for config in configs
-            if isType("Object")(config)
-                generatorConfigs.push(config)
-            else
-                break
+        # Assign `name` to the next mutated value(s), after `times` iterations.
+        # If `times` is 1, just return the value, otherwise return an array.
+        @[name] = (times=1) =>
+            values = (@setValue(@mutate(getNext())) for time in [1..times])
+            if times == 1 then values[0] else values
 
-        [name, mutator] = configs[generatorConfigs.length..]
-        name or= "next"
-        if isType("Function")(name)
-            [name, mutator] = ["next", name]
+    getValue: (value) -> @_value
 
-        @[name] = @createGenerators(generatorConfigs, mutator)
+    mutate: (value) -> value
 
-    toString: ->
-        "[object Stochator]"
+    setValue: (value) -> @_value = value
+
+    toString: -> "[object Stochator]"
+
+    _value: 0
 
 if module?.exports
     module.exports = Stochator

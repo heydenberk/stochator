@@ -190,11 +190,7 @@ class Stochator
             values = (@setValue(@mutate(getNext())) for time in [1..times])
             if times == 1 then values[0] else values
 
-        (times) ->
-            if times
-                (callGenerators() for time in [1..times])
-            else
-                callGenerators()
+    getValue: (value) -> @_value
 
     setGenerator: (configs) ->
         generatorConfigs = []
@@ -204,15 +200,11 @@ class Stochator
             else
                 break
 
-        [name, mutator] = configs[generatorConfigs.length..]
-        name or= "next"
-        if isType("Function")(name)
-            [name, mutator] = ["next", name]
+    setValue: (value) -> @_value = value
 
     toString: -> "[object Stochator]"
 
-    toString: ->
-        "[object Stochator]"
+    _value: 0
 
 if module?.exports
     module.exports = Stochator

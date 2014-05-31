@@ -14,7 +14,8 @@
         "url": "https://github.com/heydenberk/stochator"
     },
     "scripts": {
-        "prepublish": "make"
+        "build": "make build/stochator.js",
+        "prepublish": "make publish"
     },
     "version": "0.3.4"
 }

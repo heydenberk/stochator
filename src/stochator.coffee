@@ -1,3 +1,5 @@
+seedrandom = require("seedrandom")
+
 isType = (type) ->
     (arg) -> Object::toString.call(arg) == "[object #{ type }]"
 
@@ -5,46 +7,46 @@ isFunc = isType("Function")
 
 isObject = isType("Object")
 
-randomBoundedFloat = (min = 0, max = 1) ->
+randomBoundedFloat = (prng, min = 0, max = 1) ->
     spread = max - min
-    Math.random() * spread + min
+    prng() * spread + min
 
-randomBoundedInteger = (min = 0, max = 1) ->
+randomBoundedInteger = (prng, min = 0, max = 1) ->
     spread = 1 + max - min
-    Math.floor(Math.random() * spread) + min
+    Math.floor(prng() * spread) + min
 
-randomColor = ->
-    byte = kind: "integer", min: 0, max: 255
+randomColor = (prng) ->
+    byte = kind: "integer", min: 0, max: 255, prng: prng
     mutator = (bytes) ->
         [red, green, blue] = bytes
         { red, green, blue }
 
     new Stochator(byte, byte, byte, mutator).next
 
-randomNormallyDistributedFloat = (mean, stdev, min, max) ->
-    seed = randomBoundedFloat()
+randomNormallyDistributedFloat = (prng, mean, stdev, min, max) ->
+    seed = randomBoundedFloat(prng)
     float = inverseNormalCumulativeDistribution(seed) * stdev + mean
     if min? and max?
         Math.min(max, Math.max(min, float))
     else
         float
 
-randomCharacter = (lowercase) ->
+randomCharacter = (prng, lowercase) ->
     [min, max] = if lowercase then [97, 122] else [65, 90]
     mutator = (charCode) -> String.fromCharCode(charCode)
-    new Stochator({ kind: "integer", min, max }, mutator).next
+    new Stochator({ kind: "integer", min, max, prng }, mutator).next
 
-randomSetMember = (set) ->
+randomSetMember = (prng, set) ->
     max = set.length - 1
-    set.get(randomBoundedInteger(0, max))
+    set.get(randomBoundedInteger(prng, 0, max))
 
-randomSetMemberWithoutReplacement = (set) ->
+randomSetMemberWithoutReplacement = (prng, set) ->
     return undefined unless set.get(0)
     set.length -= 1
-    set.pop(randomBoundedInteger(0, set.length))
+    set.pop(randomBoundedInteger(prng, 0, set.length))
 
-randomWeightedSetMember = (set, weights) ->
-    [member, weightSum, float] = [undefined, 0, randomBoundedFloat()]
+randomWeightedSetMember = (prng, set, weights) ->
+    [member, weightSum, float] = [undefined, 0, randomBoundedFloat(prng)]
     set.each((value, index) ->
         return if member
         weight = weights.get(index)
@@ -96,10 +98,10 @@ inverseNormalCumulativeDistribution = (probability) ->
 
     coefficient * numerator / denominator
 
-shuffleSet = (set) ->
+shuffleSet = (prng, set) ->
     values = set.copy()
     for index in [values.length - 1...0]
-        randomIndex = randomBoundedInteger(0, index)
+        randomIndex = randomBoundedInteger(prng, 0, index)
 
         tmp = values[index]
         values[index] = values[randomIndex]
@@ -107,46 +109,51 @@ shuffleSet = (set) ->
 
     values
 
-floatGenerator = (min, max, mean, stdev) ->
+floatGenerator = (prng, min, max, mean, stdev) ->
     if mean and stdev
-        -> randomNormallyDistributedFloat(mean, stdev, min, max)
+        -> randomNormallyDistributedFloat(prng, mean, stdev, min, max)
     else
-        -> randomBoundedFloat(min, max)
+        -> randomBoundedFloat(prng, min, max)
 
-integerGenerator = (min = 0, max = 1) ->
-    -> randomBoundedInteger(min, max)
+integerGenerator = (prng, min = 0, max = 1) ->
+    -> randomBoundedInteger(prng, min, max)
 
-setGenerator = (values, replacement = true, shuffle = false, weights = null) ->
+setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) ->
     if not values or not values.length
         throw Error("Must provide a 'values' array for a set generator.")
 
     set = new Set(values)
     if shuffle
-        -> shuffleSet(set)
+        -> shuffleSet(prng, set)
     else if replacement
         if weights
             weightsSet = new Set(weights)
-            -> randomWeightedSetMember(set, weightsSet)
+            -> randomWeightedSetMember(prng, set, weightsSet)
         else
-            -> randomSetMember(set)
+            -> randomSetMember(prng, set)
     else
-        -> randomSetMemberWithoutReplacement(set)
+        -> randomSetMemberWithoutReplacement(prng, set)
 
 createGenerator = (config) ->
-    config.kind ?= "float"
-    generator = switch config.kind
+    kind = config.kind or "float"
+
+    defaultPrng = if config.seed then seedrandom else Math.random
+    basePrng = config.prng or defaultPrng
+    prng = if config.seed then basePrng(config.seed) else basePrng
+
+    generator = switch kind
         when "float"
             { min, max, mean, stdev } = config
-            floatGenerator(min, max, mean, stdev)
+            floatGenerator(prng, min, max, mean, stdev)
         when "integer"
-            integerGenerator(config.min, config.max)
+            integerGenerator(prng, config.min, config.max)
         when "set"
             { values, replacement, shuffle, weights } = config
-            setGenerator(values, replacement, shuffle, weights)
-        when "color", "rgb" then randomColor(config.kind)
-        when "a-z", "A-Z" then randomCharacter(config.kind is "a-z")
+            setGenerator(prng, values, replacement, shuffle, weights)
+        when "color", "rgb" then randomColor(prng)
+        when "a-z", "A-Z" then randomCharacter(prng, kind is "a-z")
     if not generator
-        throw Error("#{ config.kind } not a recognized kind.")
+        throw Error("#{ kind } not a recognized kind.")
     else
         generator
 
@@ -161,7 +168,7 @@ getNextValueGenerator = (configs) ->
 
 class Stochator
 
-    VERSION = "0.3.5"
+    VERSION = "0.4"
 
     constructor: (configs..., mutator=null, name="next") ->
         # If the last arg is an object, all args are config args.

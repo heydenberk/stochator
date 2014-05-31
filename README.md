@@ -1,8 +1,21 @@
-[Download](https://github.com/heydenberk/stochator/releases/download/0.3.5/stochator.js) the latest compiled version of stochator.js (0.3.5).
+[Download](https://github.com/heydenberk/stochator/releases/download/0.4/stochator.js) the latest compiled version of stochator.js (0.4).
 
 # Stochator
 
 `Stochator` is a tiny library providing for creating a variety of random value generators.
+
+- [Floating-point decimals](#floating-point-decimals)
+- [Floats from an interval](#floats-from-an-interval)
+- [Floats from a normal distribution](#floats-from-a-normal-distribution)
+- [Integers](#integers)
+- [Multiple results](#multiple-results)
+- [From sets](#from-sets)
+- [From sets with weights](#from-sets-with-weights)
+- [From sets without replacement](#from-sets-without-replacement)
+- [From predefined sets](#from-predefined-sets)
+- [Mutators](#mutators)
+- [Multiple generators](#multiple-generators)
+- [Changelog](#changelog)
 
 To create a `Stochator` object, simply invoke the constructor and pass it an `options` object with a `kind` property. If not provided, kind is 'float'.
 
@@ -235,3 +248,25 @@ randomPoint.next(); // { x: 79, y: 65 }
 randomPoint.next(); // { x: 151, y: 283 }
 randomPoint.next(); // { x: 5, y: 253 }
 ````
+
+## Overriding the pseudo-random number generator
+*New in 0.4.*
+
+Add a `prng` function to the configuration object to set your own pseudo-random number generator.
+
+````js
+var seedrandom = require('seedrandom');
+new Stochator({ prng: seedrandom('STOCHATOR') }).next(); // Always 0.4045178783365678
+````
+
+## Using a seed
+*New in 0.4.*
+
+Rather than requiring seedrandom and passing a PRNG with a seed (as above), you can simply provide a seed value.
+````js
+new Stochator({ seed: 'STOCHATOR' }).next(); // Still always 0.4045178783365678
+````
+
+## Changelog
+### 0.4
+`prng` can be provided on a config object to override `Math.random` as the pseudo-random number generator. `seed` can be provided to seed the PRNG with an initial value. If both are provided, the PRNG will be the function returned by calling `config.prng(config.seed)`; if just `seed` is provided, the PRNG will default to [seedrandom](https://github.com/davidbau/seedrandom) rather than `Math.random`.

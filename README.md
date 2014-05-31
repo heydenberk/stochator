@@ -237,9 +237,19 @@ randomPoint.next(); // { x: 5, y: 253 }
 ````
 
 ## Overriding the pseudo-random number generator
+*New in 0.4.*
+
 Add a `prng` function to the configuration object to set your own pseudo-random number generator.
 
 ````js
 var seedrandom = require('seedrandom');
 new Stochator({ prng: seedrandom('STOCHATOR') }).next(); // Always 0.4045178783365678
+````
+
+## Using a seed
+*New in 0.4.*
+
+Rather than requiring seedrandom and passing a PRNG with a seed (as above), you can simply provide a seed value.
+````js
+new Stochator({ seed: 'STOCHATOR' }).next(); // Still always 0.4045178783365678
 ````

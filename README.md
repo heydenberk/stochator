@@ -4,6 +4,19 @@
 
 `Stochator` is a tiny library providing for creating a variety of random value generators.
 
+- [Floating-point decimals](#floating-point-decimals)
+- [Floats from an interval](#floats-from-an-interval)
+- [Floats from a normal distribution](#floats-from-a-normal-distribution)
+- [Integers](#integers)
+- [Multiple results](#multiple-results)
+- [From sets](#from-sets)
+- [From sets with weights](#from-sets-with-weights)
+- [From sets without replacement](#from-sets-without-replacement)
+- [From predefined sets](#from-predefined-sets)
+- [Mutators](#mutators)
+- [Multiple generators](#multiple-generators)
+- [Changelog](#changelog)
+
 To create a `Stochator` object, simply invoke the constructor and pass it an `options` object with a `kind` property. If not provided, kind is 'float'.
 
 Valid kinds include `float`, `integer`, `set`, `color`, `a-z` and `A-Z`.
@@ -253,3 +266,7 @@ Rather than requiring seedrandom and passing a PRNG with a seed (as above), you 
 ````js
 new Stochator({ seed: 'STOCHATOR' }).next(); // Still always 0.4045178783365678
 ````
+
+## Changelog
+### 0.4
+`prng` can be provided on a config object to override `Math.random` as the pseudo-random number generator. `seed` can be provided to seed the PRNG with an initial value. If both are provided, the PRNG will be the function returned by calling `config.prng(config.seed)`; if just `seed` is provided, the PRNG will default to [seedrandom](https://github.com/davidbau/seedrandom) rather than `Math.random`.

@@ -4,6 +4,9 @@
     "devDependencies": {
         "coffe-script": ">=1.0.1"
     },
+    "dependencies": {
+        "seedrandom": ">=2.3.1"
+    },
     "homepage": "https://github.com/heydenberk/stochator",
     "keywords": ["random", "numbers", "values", "color", "string", "integer", "array", "shuffle", "set", "markov", "chain", "generator", "prng", "normal", "distribution"],
     "license": "MPLv2",

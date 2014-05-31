@@ -1,3 +1,5 @@
+seedrandom = require("seedrandom")
+
 isType = (type) ->
     (arg) -> Object::toString.call(arg) == "[object #{ type }]"
 

@@ -161,7 +161,7 @@ getNextValueGenerator = (configs) ->
 
 class Stochator
 
-    VERSION = "0.3.4"
+    VERSION = "0.3.5"
 
     constructor: (configs..., mutator=null, name="next") ->
         # If the last arg is an object, all args are config args.

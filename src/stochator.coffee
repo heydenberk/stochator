@@ -1,3 +1,5 @@
+seedrandom = require("seedrandom")
+
 isType = (type) ->
     (arg) -> Object::toString.call(arg) == "[object #{ type }]"
 
@@ -134,7 +136,11 @@ setGenerator = (prng, values, replacement = true, shuffle = false, weights = nul
 
 createGenerator = (config) ->
     kind = config.kind or "float"
-    prng = config.prng or Math.random
+
+    defaultPrng = if config.seed then seedrandom else Math.random
+    basePrng = config.prng or defaultPrng
+    prng = if config.seed then basePrng(config.seed) else basePrng
+
     generator = switch kind
         when "float"
             { min, max, mean, stdev } = config

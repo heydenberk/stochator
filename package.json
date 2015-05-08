@@ -19,7 +19,8 @@
     },
     "scripts": {
         "build": "make build/stochator.js",
-        "prepublish": "make publish"
+        "prepublish": "make publish",
+        "test": "mocha"
     },
     "version": "0.4"
 }

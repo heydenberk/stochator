@@ -2,7 +2,8 @@
     "bugs": "http://github.com/heydenberk/stochator/issues",
     "description": "A tiny library providing for creating a variety of random value generators.",
     "devDependencies": {
-        "coffe-script": ">=1.0.1"
+        "coffee-script": ">=1.0.1",
+        "mocha": ">=2.2.4"
     },
     "dependencies": {
         "seedrandom": ">=2.3.1"
@@ -18,7 +19,8 @@
     },
     "scripts": {
         "build": "make build/stochator.js",
-        "prepublish": "make publish"
+        "prepublish": "make publish",
+        "test": "mocha"
     },
-    "version": "0.4"
+    "version": "0.4.1"
 }

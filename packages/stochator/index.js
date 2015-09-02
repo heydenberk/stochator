@@ -180,6 +180,8 @@ const createGenerator = (config) => {
         case "a-z":
         case "A-Z":
             generator = randomCharacter(prng, kind === "a-z")
+        case default:
+            break;
     }
 
     if (!generator) {

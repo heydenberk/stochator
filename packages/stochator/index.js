@@ -210,7 +210,7 @@ const class Stochator
 
         // If the mutator is provided, override the default identity func.
         if (mutator) {
-            @mutate = (nextValue) => mutator(nextValue, @getValue())
+            this.mutate = (nextValue) => mutator(nextValue, this.getValue())
         }
 
         // Transform the configs to a func to get the next value.
@@ -218,23 +218,18 @@ const class Stochator
 
         // Assign `name` to the next mutated value(s), after `times` iterations.
         // If `times` is 1, just return the value, otherwise return an array.
-        @[name] = (times=1) => {
-            values = (@setValue(@mutate(getNext())) for time in [1..times])
+        this[name] = (times=1) => {
+            values = (this.setValue(this.mutate(getNext())) for time in [1..times])
             return times == 1 ? values[0] : values;
         }
 
-    getValue: (value) => @_value
+    getValue: (value) => this._value
 
     mutate: (value) => value
 
-    setValue: (value) => @_value = value
+    setValue: (value) => this._value = value
 
     toString: => "[object Stochator]"
 
     _value: 0
 
-if module and module.exports {
-    module.exports = Stochator
-} else {
-    this.Stochator = Stochator
-}

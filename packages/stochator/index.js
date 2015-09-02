@@ -1,7 +1,7 @@
 seedrandom = require("seedrandom")
 
-isType = (type) => {
-    (arg) => Object::toString.call(arg) == "[object #{ type }]"
+const isType = (type) => {
+    return (arg) => Object::toString.call(arg) == "[object #{ type }]"
 };
 
 const isFunc = isType("Function");
@@ -15,43 +15,43 @@ const randomBoundedFloat = (prng, min = 0, max = 1) => {
 
 const randomBoundedInteger = (prng, min = 0, max = 1) => {
     spread = 1 + max - min
-    Math.floor(prng() * spread) + min
+    return Math.floor(prng() * spread) + min
 };
 
 const randomColor = (prng) => {
     byte = kind: "integer", min: 0, max: 255, prng: prng
     mutator = (bytes) => {
         [red, green, blue] = bytes
-        { red, green, blue }
+        return { red, green, blue }
     };
 
-    new Stochator(byte, byte, byte, mutator).next
+    return new Stochator(byte, byte, byte, mutator).next
 };
 
 const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
     seed = randomBoundedFloat(prng)
     float = inverseNormalCumulativeDistribution(seed) * stdev + mean
     if min? and max?
-        Math.min(max, Math.max(min, float))
+        return Math.min(max, Math.max(min, float))
     else
-        float
+        return float
 };
 
 const randomCharacter = (prng, lowercase) => {
     [min, max] = if lowercase then [97, 122] else [65, 90]
     mutator = (charCode) => String.fromCharCode(charCode)
-    new Stochator({ kind: "integer", min, max, prng }, mutator).next
+    return new Stochator({ kind: "integer", min, max, prng }, mutator).next
 };
 
 const randomSetMember = (prng, set) => {
     max = set.length - 1
-    set.get(randomBoundedInteger(prng, 0, max))
+    return set.get(randomBoundedInteger(prng, 0, max))
 };
 
 const randomSetMemberWithoutReplacement = (prng, set) => {
     return undefined unless set.get(0)
     set.length -= 1
-    set.pop(randomBoundedInteger(prng, 0, set.length))
+    return set.pop(randomBoundedInteger(prng, 0, set.length))
 };
 
 const randomWeightedSetMember = (prng, set, weights) => {
@@ -64,7 +64,7 @@ const randomWeightedSetMember = (prng, set, weights) => {
         weightSum += weight
     )
 
-    member
+    return member
 };
 
 const inverseNormalCumulativeDistribution = (probability) => {
@@ -101,13 +101,13 @@ const inverseNormalCumulativeDistribution = (probability) => {
         base = Math.pow(coefficient, 2)
 
     mapMaxExp = (maxExp) => {
-        (value, index) => value * Math.pow(base, maxExp - index)
+        return (value, index) => value * Math.pow(base, maxExp - index)
     };
 
     numerator = numCoefficients.map(mapMaxExp(numMaxExponent)).sum()
     denominator = denomCoeffcients.map(mapMaxExp(denomMaxExponent)).sum() + 1
 
-    coefficient * numerator / denominator
+    return coefficient * numerator / denominator
 };
 
 const shuffleSet = (prng, set) => {
@@ -119,18 +119,18 @@ const shuffleSet = (prng, set) => {
         values[index] = values[randomIndex]
         values[randomIndex] = tmp
 
-    values
+    return values
 };
 
 const floatGenerator = (prng, min, max, mean, stdev) => {
     if mean and stdev
-        => randomNormallyDistributedFloat(prng, mean, stdev, min, max)
+        return => randomNormallyDistributedFloat(prng, mean, stdev, min, max)
     else
-        => randomBoundedFloat(prng, min, max)
+        return => randomBoundedFloat(prng, min, max)
 };
 
 const integerGenerator = (prng, min = 0, max = 1) => {
-    => randomBoundedInteger(prng, min, max)
+    return => randomBoundedInteger(prng, min, max)
 };
 
 const setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
@@ -139,15 +139,15 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
 
     set = new Set(values)
     if shuffle
-        => shuffleSet(prng, set)
+        return => shuffleSet(prng, set)
     else if replacement
         if weights
             weightsSet = new Set(weights)
-            => randomWeightedSetMember(prng, set, weightsSet)
+            return => randomWeightedSetMember(prng, set, weightsSet)
         else
-            => randomSetMember(prng, set)
+            return => randomSetMember(prng, set)
     else
-        => randomSetMemberWithoutReplacement(prng, set)
+        return => randomSetMemberWithoutReplacement(prng, set)
 };
 
 const createGenerator = (config) => {
@@ -171,16 +171,16 @@ const createGenerator = (config) => {
     if not generator
         throw Error("#{ kind } not a recognized kind.")
     else
-        generator
+        return generator
 };
 
 const getNextValueGenerator = (configs) => {
     configs[0] ?= {}
     generators = (createGenerator(config) for config in configs)
     if generators.length is 1
-        => generators[0]()
+        return => generators[0]()
     else
-        => (generator() for generator in generators)
+        return => (generator() for generator in generators)
 };
 
 

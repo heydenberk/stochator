@@ -175,17 +175,22 @@ const createGenerator = (config) => {
         case "float":
             let { min, max, mean, stdev } = config;
             generator = floatGenerator(prng, min, max, mean, stdev);
+            break;
         case "integer":
             generator = integerGenerator(prng, config.min, config.max);
+            break;
         case "set":
             let { values, replacement, shuffle, weights } = config;
             generator = setGenerator(prng, values, replacement, shuffle, weights);
+            break;
         case "color":
         case "rgb":
             generator = randomColor(prng);
+            break;
         case "a-z":
         case "A-Z":
-            generator = randomCharacter(prng, kind === "a-z")
+            generator = randomCharacter(prng, kind === "a-z");
+            break;
         default:
             break;
     }

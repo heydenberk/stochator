@@ -8,6 +8,7 @@ import {
     shuffleSet
 } from "./set";
 import {randomCharacter} from "./string";
+import {randomColor} from "./color";
 
 const isType = (type) => {
     return (arg) => Object.prototype.toString.call(arg) == `[object ${ type }]`
@@ -22,15 +23,6 @@ const isString = isType("String");
 
 const range = (start, end) => [for (i of Array(end - start).keys()) i + start];
 
-const randomColor = (prng) => {
-    const byte = {kind: "integer", min: 0, max: 255, prng};
-    const mutator = (bytes) => {
-        const [red, green, blue] = bytes;
-        return { red, green, blue };
-    };
-
-    return new Stochator(byte, byte, byte, mutator).next;
-};
 
 const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
     const seed = randomBoundedFloat(prng);

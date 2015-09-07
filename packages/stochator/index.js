@@ -7,6 +7,24 @@ import seedrandom from "seedrandom";
 import set from "./set";
 import string from "./string";
 
+const VALID_KINDS = [
+    "float",
+    "integer",
+    "set",
+    "color",
+    "rgb",
+    "a-z",
+    "A-Z"
+];
+
+const validateKind = (kind) => {
+    if (VALID_KINDS.indexOf(kind) !== -1) {
+        return true;
+    }
+    throw Error(`${kind} is in invalid kind. Valid kinds include:
+    ${VALID_KINDS.join(', ')}`);
+};
+
 const floatGenerator = (prng, min, max, mean, stdev) => {
     if (mean && stdev) {
         return () => distribution.randomNormallyDistributedFloat(prng, mean, stdev, min, max);
@@ -39,42 +57,29 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
 
 const createGenerator = (config) => {
     const kind = config.kind || "float";
+    validateKind(kind);
 
     const defaultPrng = config.seed ? seedrandom : Math.random;
     const basePrng = config.prng || defaultPrng;
     const prng = config.seed ? basePrng(config.seed) : basePrng;
 
-    let generator = null;
     switch (kind) {
         case "float":
             let { min, max, mean, stdev } = config;
-            generator = floatGenerator(prng, min, max, mean, stdev);
-            break;
+            return floatGenerator(prng, min, max, mean, stdev);
         case "integer":
-            generator = integerGenerator(prng, config.min, config.max);
-            break;
+            return integerGenerator(prng, config.min, config.max);
         case "set":
             let { values, replacement, shuffle, weights } = config;
-            generator = setGenerator(prng, values, replacement, shuffle, weights);
-            break;
+            return setGenerator(prng, values, replacement, shuffle, weights);
         case "color":
         case "rgb":
-            generator = color.randomColor(prng);
-            break;
+            return color.randomColor(prng);
         case "a-z":
         case "A-Z":
-            generator = kind === "a-z" ?
+            return kind === "a-z" ?
                 string.randomLowercaseCharacter(prng)
                 : string.randomUppercaseCharacter(prng);
-            break;
-        default:
-            break;
-    }
-
-    if (!generator) {
-        throw Error("#{ kind } not a recognized kind.");
-    } else {
-        return generator;
     }
 };
 

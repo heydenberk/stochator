@@ -7,6 +7,7 @@ import {
     randomWeightedSetMember,
     shuffleSet
 } from "./set";
+import {randomCharacter} from "./string";
 
 const isType = (type) => {
     return (arg) => Object.prototype.toString.call(arg) == `[object ${ type }]`
@@ -38,11 +39,7 @@ const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
         Math.min(max, Math.max(min, float)) : float;
 };
 
-const randomCharacter = (prng, lowercase) => {
-    const [min, max] = lowercase ? [97, 122] : [65, 90];
-    const mutator = (charCode) => String.fromCharCode(charCode);
-    return new Stochator({ kind: "integer", min, max, prng }, mutator).next;
-};
+
 
 const inverseNormalCumulativeDistribution = (probability) => {
     const high = probability > 0.97575;

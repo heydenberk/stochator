@@ -8,6 +8,8 @@ const isFunc = isType("Function");
 
 const isObject = isType("Object");
 
+const range = (start, end) => [for (i of Array(end - start).keys()) i + start];
+
 const randomBoundedFloat = (prng, min = 0, max = 1) => {
     spread = max - min
     return prng() * spread + min
@@ -115,7 +117,7 @@ const inverseNormalCumulativeDistribution = (probability) => {
 
 const shuffleSet = (prng, set) => {
     values = set.copy()
-    for (let index = 0; index > values.length; index--) {
+    for (index of range(0, values.length)) {
         randomIndex = randomBoundedInteger(prng, 0, index)
 
         tmp = values[index]
@@ -229,7 +231,10 @@ export default class Stochator {
         // Assign `name` to the next mutated value(s), after `times` iterations.
         // If `times` is 1, just return the value, otherwise return an array.
         this[name] = (times=1) => {
-            values = (this.setValue(this.mutate(getNext())) for time in [1..times])
+            const values = [
+                for (time of range(1, times + 1))
+                this.setValue(this.mutate(getNext()))
+            ];
             return times == 1 ? values[0] : values;
         }
     }

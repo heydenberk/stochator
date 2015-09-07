@@ -47,9 +47,10 @@ const randomSetMember = (prng, set) => {
 };
 
 const randomSetMemberWithoutReplacement = (prng, set) => {
-    return undefined unless set.get(0)
-    set.length -= 1
-    return set.pop(randomBoundedInteger(prng, 0, set.length))
+    if (set.get(0)) {
+        set.length -= 1
+        return set.pop(randomBoundedInteger(prng, 0, set.length))
+    }
 };
 
 const randomWeightedSetMember = (prng, set, weights) => {

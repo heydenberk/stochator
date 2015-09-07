@@ -114,13 +114,13 @@ const inverseNormalCumulativeDistribution = (probability) => {
 
 const shuffleSet = (prng, set) => {
     values = set.copy()
-    for index in [values.length - 1...0]
+    for (let index = 0; index > values.length; index--) {
         randomIndex = randomBoundedInteger(prng, 0, index)
 
         tmp = values[index]
         values[index] = values[randomIndex]
         values[randomIndex] = tmp
-
+    }
     return values
 };
 

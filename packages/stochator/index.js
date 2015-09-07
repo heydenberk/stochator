@@ -167,12 +167,12 @@ const createGenerator = (config) => {
     let generator = null;
     switch (kind) {
         case "float":
-            { min, max, mean, stdev } = config
+            let { min, max, mean, stdev } = config
             generator = floatGenerator(prng, min, max, mean, stdev)
         case "integer":
             generator = integerGenerator(prng, config.min, config.max)
         case "set":
-            { values, replacement, shuffle, weights } = config
+            let { values, replacement, shuffle, weights } = config
             generator = setGenerator(prng, values, replacement, shuffle, weights)
         case "color":
         case "rgb":

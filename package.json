@@ -1,26 +1,46 @@
 {
-    "bugs": "http://github.com/heydenberk/stochator/issues",
-    "description": "A tiny library providing for creating a variety of random value generators.",
-    "devDependencies": {
-        "coffee-script": ">=1.0.1",
-        "mocha": ">=2.2.4"
-    },
-    "dependencies": {
-        "seedrandom": ">=2.3.1"
-    },
-    "homepage": "https://github.com/heydenberk/stochator",
-    "keywords": ["random", "numbers", "values", "color", "string", "integer", "array", "shuffle", "set", "markov", "chain", "generator", "prng", "normal", "distribution"],
-    "license": "MPLv2",
-    "main": "build/stochator.js",
-    "name": "stochator",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/heydenberk/stochator"
-    },
-    "scripts": {
-        "build": "make build/stochator.js",
-        "prepublish": "make publish",
-        "test": "mocha"
-    },
-    "version": "0.4.1"
+  "bugs": "http://github.com/heydenberk/stochator/issues",
+  "description": "A tiny library providing for creating a variety of random value generators.",
+  "devDependencies": {
+    "babel": ">=5.8.23",
+    "mocha": "^2.3.0"
+  },
+  "dependencies": {
+    "lodash": ">=2.3.1",
+    "seedrandom": ">=2.3.1"
+  },
+  "homepage": "https://github.com/heydenberk/stochator",
+  "keywords": [
+    "random",
+    "numbers",
+    "values",
+    "color",
+    "string",
+    "integer",
+    "array",
+    "shuffle",
+    "set",
+    "markov",
+    "chain",
+    "generator",
+    "prng",
+    "normal",
+    "distribution"
+  ],
+  "license": "MPL-2.0",
+  "main": "build/index.js",
+  "name": "stochator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heydenberk/stochator"
+  },
+  "scripts": {
+    "build": "babel packages/stochator/ --ignore=packages/stochator/node_modules --out-dir=build --stage=0",
+    "clean": "rm -rf build/ node_modules/",
+    "prepublish": "npm run-script build",
+    "publish": "cp build/index.js index.js",
+    "pretest": "npm install",
+    "test": "mocha"
+  },
+  "version": "0.5.0"
 }

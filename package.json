@@ -2,12 +2,13 @@
   "bugs": "http://github.com/heydenberk/stochator/issues",
   "description": "A tiny library providing for creating a variety of random value generators.",
   "devDependencies": {
-    "babel": ">=5.8.23",
-    "mocha": "^2.3.0"
+    "babel": "^5.8.23",
+    "browserify": "^11.0.1",
+    "mocha": "^2.3.1"
   },
   "dependencies": {
-    "lodash": ">=2.3.1",
-    "seedrandom": ">=2.3.1"
+    "lodash": "^3.10.1",
+    "seedrandom": "^2.4.2"
   },
   "homepage": "https://github.com/heydenberk/stochator",
   "keywords": [

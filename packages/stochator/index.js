@@ -7,25 +7,9 @@ import seedrandom from "seedrandom";
 import set from "./set";
 import string from "./string";
 
-const VALID_KINDS = [
-    "float",
-    "integer",
-    "set",
-    "color",
-    "rgb",
-    "a-z",
-    "A-Z"
-];
+const colorGenerator = ({prng}) => color.randomColor(prng);
 
-const validateKind = (kind) => {
-    if (VALID_KINDS.indexOf(kind) !== -1) {
-        return true;
-    }
-    throw Error(`${kind} is in invalid kind. Valid kinds include:
-    ${VALID_KINDS.join(', ')}`);
-};
-
-const floatGenerator = (prng, min, max, mean, stdev) => {
+const floatGenerator = ({min, max, mean, prng, stdev}) => {
     if (mean && stdev) {
         return () => distribution.randomNormallyDistributedFloat(prng, mean, stdev, min, max);
     } else {
@@ -33,11 +17,11 @@ const floatGenerator = (prng, min, max, mean, stdev) => {
     }
 };
 
-const integerGenerator = (prng, min = 0, max = 1) => {
+const integerGenerator = ({min, max, prng}) => {
     return () => integer.boundedRandom(prng, min, max);
 };
 
-const setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
+const setGenerator = ({values, prng, replacement=true, shuffle=false, weights=null}) => {
     if (!values || !values.length) {
         throw Error("Must provide a 'values' array for a set generator.")
     }
@@ -55,32 +39,40 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
     }
 };
 
-const createGenerator = (config) => {
-    const kind = config.kind || "float";
-    validateKind(kind);
+const stringGenerator = ({kind, prng}) => {
+    return kind === "a-z" ?
+        string.randomLowercaseCharacter(prng)
+        : string.randomUppercaseCharacter(prng);
+};
 
-    const defaultPrng = config.seed ? seedrandom : Math.random;
-    const basePrng = config.prng || defaultPrng;
-    const prng = config.seed ? basePrng(config.seed) : basePrng;
+const KIND_GENERATORS = {
+    "float": floatGenerator,
+    "integer": integerGenerator,
+    "set": setGenerator,
+    "color": colorGenerator,
+    "rgb": colorGenerator,
+    "a-z": stringGenerator,
+    "A-Z": stringGenerator
+};
 
-    switch (kind) {
-        case "float":
-            let { min, max, mean, stdev } = config;
-            return floatGenerator(prng, min, max, mean, stdev);
-        case "integer":
-            return integerGenerator(prng, config.min, config.max);
-        case "set":
-            let { values, replacement, shuffle, weights } = config;
-            return setGenerator(prng, values, replacement, shuffle, weights);
-        case "color":
-        case "rgb":
-            return color.randomColor(prng);
-        case "a-z":
-        case "A-Z":
-            return kind === "a-z" ?
-                string.randomLowercaseCharacter(prng)
-                : string.randomUppercaseCharacter(prng);
+const VALID_KINDS = Object.keys(KIND_GENERATORS);
+
+const validateKind = (kind) => {
+    if (VALID_KINDS.indexOf(kind) !== -1) {
+        return true;
     }
+    throw Error(`${kind} is in invalid kind. Valid kinds include:
+    ${VALID_KINDS.join(', ')}`);
+};
+
+const getConfigWithDefaults = (rawConfig) => {
+    return {kind: "float", ...rawConfig, prng: getPrng(rawConfig)};
+};
+
+const createGenerator = (rawConfig) => {
+    const config = getConfigWithDefaults(rawConfig);
+    validateKind(config.kind);
+    return KIND_GENERATORS[config.kind](config);
 };
 
 const getNextValueGenerator = (configs) => {

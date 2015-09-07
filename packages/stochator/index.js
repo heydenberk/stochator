@@ -189,9 +189,9 @@ const class Stochator
     VERSION = "0.4"
 
     constructor: (configs..., mutator=null, name="next") => {
-        # If the last arg is an object, all args are config args.
-        # If the penultimate arg is an object, check whether the last arg
-        # is a string (hence, the name) || a function (hence, the mutator).
+        // If the last arg is an object, all args are config args.
+        // If the penultimate arg is an object, check whether the last arg
+        // is a string (hence, the name) || a function (hence, the mutator).
         if isObject(name)
             configs[configs.length..configs.length + 2] = [mutator, name]
             [mutator, name] = [null, "next"]
@@ -202,15 +202,15 @@ const class Stochator
             else
                 [null, name]
 
-        # If the mutator is provided, override the default identity func.
+        // If the mutator is provided, override the default identity func.
         if mutator
             @mutate = (nextValue) => mutator(nextValue, @getValue())
 
-        # Transform the configs to a func to get the next value.
+        // Transform the configs to a func to get the next value.
         getNext = getNextValueGenerator(configs)
 
-        # Assign `name` to the next mutated value(s), after `times` iterations.
-        # If `times` is 1, just return the value, otherwise return an array.
+        // Assign `name` to the next mutated value(s), after `times` iterations.
+        // If `times` is 1, just return the value, otherwise return an array.
         @[name] = (times=1) => {
             values = (@setValue(@mutate(getNext())) for time in [1..times])
             if times == 1 then values[0] else values

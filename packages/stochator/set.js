@@ -3,7 +3,7 @@ import integer from "./integer";
 
 const randomMember = (values, prng=Math.random) => {
     const max = values.length - 1;
-    return values[integer.boundedRando, prng=Math.randomm(0, max)];
+    return values[integer.boundedRandom(0, max, prng)];
 };
 
 const randomMemberWithoutReplacement = (values, prng=Math.random) => {
@@ -16,7 +16,7 @@ const randomMemberWithoutReplacement = (values, prng=Math.random) => {
 };
 
 const weightedRandomMember = (values, weights, prng=Math.random) => {
-    let [member, weightSum, threshold] = [undefined, 0, float.boundedRandom(prng)];
+    let [member, weightSum, threshold] = [undefined, 0, float.boundedRandom(0, 1, prng)];
     values.forEach((value, index) => {
         if (member) {
             return;

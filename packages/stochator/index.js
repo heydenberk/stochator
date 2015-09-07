@@ -7,7 +7,7 @@ import seedrandom from "seedrandom";
 import set from "./set";
 import string from "./string";
 
-const colorGenerator = ({prng}) => color.randomRgb(prng);
+const colorGenerator = ({prng}) => () => color.randomRgb(prng);
 
 const floatGenerator = ({min, max, mean, prng, stdev}) => {
     if (mean && stdev) {
@@ -41,8 +41,8 @@ const setGenerator = ({values, prng, replacement=true, shuffle=false, weights=nu
 
 const stringGenerator = ({kind, prng}) => {
     return kind === "a-z" ?
-        string.randomLowercaseCharacter(prng)
-        : string.randomUppercaseCharacter(prng);
+        () => string.randomLowercaseCharacter(prng)
+        : () => string.randomUppercaseCharacter(prng);
 };
 
 const KIND_GENERATORS = {

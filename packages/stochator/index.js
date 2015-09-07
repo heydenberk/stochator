@@ -1,3 +1,4 @@
+import _ from "lodash";
 import seedrandom from "seedrandom";
 import {randomBoundedFloat} from "./float";
 import {randomBoundedInteger} from "./integer";
@@ -10,19 +11,6 @@ import {
 import {randomCharacter} from "./string";
 import {randomColor} from "./color";
 import {randomNormallyDistributedFloat} from "./distribution";
-
-const isType = (type) => {
-    return (arg) => Object.prototype.toString.call(arg) == `[object ${ type }]`
-};
-
-const isFunc = isType("Function");
-
-const isObject = isType("Object");
-
-const isString = isType("String");
-
-
-const range = (start, end) => [for (i of Array(end - start).keys()) i + start];
 
 const floatGenerator = (prng, min, max, mean, stdev) => {
     if (mean && stdev) {
@@ -107,9 +95,9 @@ const getNextValueGenerator = (configs) => {
 const parseArgs = (args) => {
     const defaults = {configs: [], mutator: null, name: null};
     return args.reduce((result, arg) => {
-        if (result.mutator || isString(arg)) {
+        if (result.mutator || _.isString(arg)) {
             result.name = arg;
-        } else if (isFunc(arg)) {
+        } else if (_.isFunction(arg)) {
             result.mutator = arg;
         } else {
             result.configs.push(arg);
@@ -138,7 +126,7 @@ export default class Stochator {
         // If `times` is 1, just return the value, otherwise return an array.
         this.next = (times=1) => {
             const values = [
-                for (time of range(1, times + 1))
+                for (time of _.range(1, times + 1))
                 this.setValue(this.mutate(getNext()))
             ];
             return times == 1 ? values[0] : values;

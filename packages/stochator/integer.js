@@ -3,4 +3,8 @@ const boundedRandom = (prng, min = 0, max = 1) => {
     return Math.floor(prng() * spread) + min;
 };
 
-export default {boundedRandom};
+const randomByte = (prng) => {
+    return boundedRandom(prng, 0, 255);
+};
+
+export default {boundedRandom, randomByte};

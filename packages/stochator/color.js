@@ -1,9 +1,12 @@
 import integer from "./integer";
 
 const randomColor = (prng) => {
-    const randomOrd = () => integer.boundedRandom(prng, 0, 255);
     return () => {
-        return {red: randomOrd(), green: randomOrd(), blue: randomOrd()}
+        return {
+            red: integer.randomByte(prng),
+            green: integer.randomByte(prng),
+            blue: integer.randomByte(prng)
+        };
     };
 };
 

@@ -1,27 +1,22 @@
 import _ from "lodash";
 import seedrandom from "seedrandom";
-import {randomBoundedFloat} from "./float";
-import {randomBoundedInteger} from "./integer";
-import {
-    randomSetMember,
-    randomSetMemberWithoutReplacement,
-    randomWeightedSetMember,
-    shuffleSet
-} from "./set";
-import {randomCharacter} from "./string";
-import {randomColor} from "./color";
-import {randomNormallyDistributedFloat} from "./distribution";
+import float from "./float";
+import integer from "./integer";
+import set from "./set";
+import string from "./string";
+import color from "./color";
+import distribution from "./distribution";
 
 const floatGenerator = (prng, min, max, mean, stdev) => {
     if (mean && stdev) {
-        return () => randomNormallyDistributedFloat(prng, mean, stdev, min, max);
+        return () => distribution.randomNormallyDistributedFloat(prng, mean, stdev, min, max);
     } else {
-        return () => randomBoundedFloat(prng, min, max);
+        return () => float.randomBoundedFloat(prng, min, max);
     }
 };
 
 const integerGenerator = (prng, min = 0, max = 1) => {
-    return () => randomBoundedInteger(prng, min, max);
+    return () => integer.randomBoundedInteger(prng, min, max);
 };
 
 const setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
@@ -30,15 +25,15 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
     }
 
     if (shuffle) {
-        return () => shuffleSet(prng, values);
+        return () => set.shuffleSet(prng, values);
     } else if (replacement) {
         if (weights) {
-            return () => randomWeightedSetMember(prng, values, weights);
+            return () => set.randomWeightedSetMember(prng, values, weights);
         } else {
-            return () => randomSetMember(prng, values);
+            return () => set.randomSetMember(prng, values);
         }
     } else {
-        return () => randomSetMemberWithoutReplacement(prng, values);
+        return () => set.randomSetMemberWithoutReplacement(prng, values);
     }
 };
 
@@ -64,11 +59,11 @@ const createGenerator = (config) => {
             break;
         case "color":
         case "rgb":
-            generator = randomColor(prng);
+            generator = color.randomColor(prng);
             break;
         case "a-z":
         case "A-Z":
-            generator = randomCharacter(prng, kind === "a-z");
+            generator = string.randomCharacter(prng, kind === "a-z");
             break;
         default:
             break;

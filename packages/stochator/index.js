@@ -110,6 +110,29 @@ export default class Stochator {
 
     VERSION = "0.4"
 
+    static fromDistribution = {
+        normal: distribution.randomNormallyDistributedFloat
+    };
+
+    static randomColor = color.randomRgb;
+
+    static randomFloat = float.boundedRandom;
+
+    static randomInteger = integer.boundedRandom;
+
+    static randomLowercaseCharacter = string.randomLowercaseCharacter;
+
+    static randomUppercaseCharacter = string.randomUppercaseCharacter;
+
+    static randomSetMember = set.randomMember;
+
+    static randomSetMemberWithoutReplacement = set.randomMemberWithoutReplacement;
+
+    static weightedRandomSetMember = set.weightedRandomMember;
+
+    static shuffleSet = set.shuffleSet;
+
+
     constructor(...args) {
         const {configs, mutator, name} = parseArgs(args);
 

@@ -85,6 +85,11 @@ const getNextValueGenerator = (configs) => {
     }
 };
 
+const getPrng = ({seed, prng}) => {
+    const defaultPrng = seed ? seedrandom : Math.random;
+    const basePrng = prng ? prng : defaultPrng;
+    return seed ? basePrng(seed) : basePrng;
+};
 
 const parseArgs = (args) => {
     const defaults = {configs: [], mutator: null, name: null};

@@ -208,15 +208,17 @@ export default class Stochator {
 
     VERSION = "0.4"
 
-    constructor(configs..., mutator=null, name="next") {
+    constructor(...args) {
+        let configs = args.slice(0, -2);
+        let [mutator, name] = args.slice(-2);
         // If the last arg is an object, all args are config args.
         // If the penultimate arg is an object, check whether the last arg
         // is a string (hence, the name) || a function (hence, the mutator).
         if (isObject(name)) {
-            configs[configs.length..configs.length + 2] = [mutator, name]
-            [mutator, name] = [null, "next"]
+            configs = args;
+            [mutator, name] = [null, "next"];
         } else if (isObject(mutator)) {
-            configs[configs.length] = mutator
+            configs = args.slice(0, -1);
             [mutator, name] = isFunc(name) ? [name, "next"] : [null, name];
         }
 

@@ -4,21 +4,21 @@ isType = (type) => {
     (arg) => Object::toString.call(arg) == "[object #{ type }]"
 };
 
-isFunc = isType("Function")
+const isFunc = isType("Function");
 
-isObject = isType("Object")
+const isObject = isType("Object");
 
-randomBoundedFloat = (prng, min = 0, max = 1) => {
+const randomBoundedFloat = (prng, min = 0, max = 1) => {
     spread = max - min
     return prng() * spread + min
 };
 
-randomBoundedInteger = (prng, min = 0, max = 1) => {
+const randomBoundedInteger = (prng, min = 0, max = 1) => {
     spread = 1 + max - min
     Math.floor(prng() * spread) + min
 };
 
-randomColor = (prng) => {
+const randomColor = (prng) => {
     byte = kind: "integer", min: 0, max: 255, prng: prng
     mutator = (bytes) => {
         [red, green, blue] = bytes
@@ -28,7 +28,7 @@ randomColor = (prng) => {
     new Stochator(byte, byte, byte, mutator).next
 };
 
-randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
+const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
     seed = randomBoundedFloat(prng)
     float = inverseNormalCumulativeDistribution(seed) * stdev + mean
     if min? and max?
@@ -37,24 +37,24 @@ randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
         float
 };
 
-randomCharacter = (prng, lowercase) => {
+const randomCharacter = (prng, lowercase) => {
     [min, max] = if lowercase then [97, 122] else [65, 90]
     mutator = (charCode) => String.fromCharCode(charCode)
     new Stochator({ kind: "integer", min, max, prng }, mutator).next
 };
 
-randomSetMember = (prng, set) => {
+const randomSetMember = (prng, set) => {
     max = set.length - 1
     set.get(randomBoundedInteger(prng, 0, max))
 };
 
-randomSetMemberWithoutReplacement = (prng, set) => {
+const randomSetMemberWithoutReplacement = (prng, set) => {
     return undefined unless set.get(0)
     set.length -= 1
     set.pop(randomBoundedInteger(prng, 0, set.length))
 };
 
-randomWeightedSetMember = (prng, set, weights) => {
+const randomWeightedSetMember = (prng, set, weights) => {
     [member, weightSum, float] = [undefined, 0, randomBoundedFloat(prng)]
     set.each((value, index) => {
         return if member
@@ -67,7 +67,7 @@ randomWeightedSetMember = (prng, set, weights) => {
     member
 };
 
-inverseNormalCumulativeDistribution = (probability) => {
+const inverseNormalCumulativeDistribution = (probability) => {
     high = probability > 0.97575
     low = probability < 0.02425
 
@@ -110,7 +110,7 @@ inverseNormalCumulativeDistribution = (probability) => {
     coefficient * numerator / denominator
 };
 
-shuffleSet = (prng, set) => {
+const shuffleSet = (prng, set) => {
     values = set.copy()
     for index in [values.length - 1...0]
         randomIndex = randomBoundedInteger(prng, 0, index)
@@ -122,18 +122,18 @@ shuffleSet = (prng, set) => {
     values
 };
 
-floatGenerator = (prng, min, max, mean, stdev) => {
+const floatGenerator = (prng, min, max, mean, stdev) => {
     if mean and stdev
         => randomNormallyDistributedFloat(prng, mean, stdev, min, max)
     else
         => randomBoundedFloat(prng, min, max)
 };
 
-integerGenerator = (prng, min = 0, max = 1) => {
+const integerGenerator = (prng, min = 0, max = 1) => {
     => randomBoundedInteger(prng, min, max)
 };
 
-setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
+const setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
     if not values or not values.length
         throw Error("Must provide a 'values' array for a set generator.")
 
@@ -150,7 +150,7 @@ setGenerator = (prng, values, replacement = true, shuffle = false, weights = nul
         => randomSetMemberWithoutReplacement(prng, set)
 };
 
-createGenerator = (config) => {
+const createGenerator = (config) => {
     kind = config.kind or "float"
 
     defaultPrng = if config.seed then seedrandom else Math.random
@@ -174,7 +174,7 @@ createGenerator = (config) => {
         generator
 };
 
-getNextValueGenerator = (configs) => {
+const getNextValueGenerator = (configs) => {
     configs[0] ?= {}
     generators = (createGenerator(config) for config in configs)
     if generators.length is 1
@@ -184,7 +184,7 @@ getNextValueGenerator = (configs) => {
 };
 
 
-class Stochator
+const class Stochator
 
     VERSION = "0.4"
 
@@ -225,8 +225,8 @@ class Stochator
 
     _value: 0
 
-if module?.exports
+const if module?.exports
     module.exports = Stochator
-else
+const else
     this.Stochator = Stochator
 

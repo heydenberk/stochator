@@ -47,7 +47,7 @@ const inverseNormalCumulativeDistribution = (probability) => {
     return coefficient * numerator / denominator;
 };
 
-const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
+const randomNormallyDistributedFloat = (mean, stdev, min, max, prng=Math.random) => {
     const seed = float.boundedRandom(prng);
     const result = inverseNormalCumulativeDistribution(seed) * stdev + mean;
     return min != null && max != null ?

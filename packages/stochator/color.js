@@ -1,6 +1,6 @@
 import integer from "./integer";
 
-const randomColor = (prng) => {
+const randomColor = (prng=Math.random) => {
     return () => {
         return {
             red: integer.randomByte(prng),

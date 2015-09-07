@@ -11,14 +11,14 @@ const colorGenerator = ({prng}) => color.randomColor(prng);
 
 const floatGenerator = ({min, max, mean, prng, stdev}) => {
     if (mean && stdev) {
-        return () => distribution.randomNormallyDistributedFloat(prng, mean, stdev, min, max);
+        return () => distribution.randomNormallyDistributedFloat(mean, stdev, min, max, prng);
     } else {
-        return () => float.boundedRandom(prng, min, max);
+        return () => float.boundedRandom(min, max, prng);
     }
 };
 
 const integerGenerator = ({min, max, prng}) => {
-    return () => integer.boundedRandom(prng, min, max);
+    return () => integer.boundedRandom(min, max, prng);
 };
 
 const setGenerator = ({values, prng, replacement=true, shuffle=false, weights=null}) => {
@@ -27,15 +27,15 @@ const setGenerator = ({values, prng, replacement=true, shuffle=false, weights=nu
     }
 
     if (shuffle) {
-        return () => set.shuffle(prng, values);
+        return () => set.shuffleSet(values, prng);
     } else if (replacement) {
         if (weights) {
-            return () => set.weightedRandomMember(prng, values, weights);
+            return () => set.weightedRandomMember(values, weights, prng);
         } else {
-            return () => set.randomMember(prng, values);
+            return () => set.randomMember(values, prng);
         }
     } else {
-        return () => set.randomMemberWithoutReplacement(prng, values);
+        return () => set.randomMemberWithoutReplacement(values, prng);
     }
 };
 

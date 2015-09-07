@@ -1,4 +1,4 @@
-const boundedRandom = (prng, min = 0, max = 1) => {
+const boundedRandom = (min = 0, max = 1, prng=Math.random) => {
     const spread = max - min;
     return prng() * spread + min;
 };

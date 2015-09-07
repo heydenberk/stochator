@@ -1,12 +1,13 @@
 import seedrandom from "seedrandom";
 
 const isType = (type) => {
-    return (arg) => Object::toString.call(arg) == "[object #{ type }]"
+    return (arg) => Object.prototype.toString.call(arg) == "[object #{ type }]"
 };
 
 const isFunc = isType("Function");
 
 const isObject = isType("Object");
+
 
 const range = (start, end) => [for (i of Array(end - start).keys()) i + start];
 

@@ -1,6 +1,6 @@
 import integer from "./integer";
 
-const randomColor = (prng=Math.random) => {
+const randomRgb = (prng=Math.random) => {
     return () => {
         return {
             red: integer.randomByte(prng),
@@ -10,4 +10,4 @@ const randomColor = (prng=Math.random) => {
     };
 };
 
-export default {randomColor};
+export default {randomRgb};

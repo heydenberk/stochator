@@ -7,7 +7,7 @@ import seedrandom from "seedrandom";
 import set from "./set";
 import string from "./string";
 
-const colorGenerator = ({prng}) => color.randomColor(prng);
+const colorGenerator = ({prng}) => color.randomRgb(prng);
 
 const floatGenerator = ({min, max, mean, prng, stdev}) => {
     if (mean && stdev) {

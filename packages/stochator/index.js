@@ -63,7 +63,9 @@ const createGenerator = (config) => {
             break;
         case "a-z":
         case "A-Z":
-            generator = string.randomCharacter(prng, kind === "a-z");
+            generator = kind === "a-z" ?
+                string.randomLowercaseCharacter(prng)
+                : string.randomUppercaseCharacter(prng);
             break;
         default:
             break;

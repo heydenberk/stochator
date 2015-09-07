@@ -182,7 +182,7 @@ const createGenerator = (config) => {
 };
 
 const getNextValueGenerator = (configs) => {
-    configs[0] ?= {}
+    configs[0] = configs[0] ? configs[0] : {}
     generators = (createGenerator(config) for config in configs)
     if (generators.length is 1) {
         return => generators[0]()

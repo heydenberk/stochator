@@ -35,7 +35,7 @@
     "url": "https://github.com/heydenberk/stochator"
   },
   "scripts": {
-    "build": "babel packages/stochator/ --ignore=packages/stochator/node_modules --out-dir=build --stage=0",
+    "build": "babel src/ --out-dir=build --stage=0",
     "clean": "rm -rf build/ node_modules/",
     "prepublish": "npm run-script build",
     "publish": "cp build/index.js index.js",

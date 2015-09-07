@@ -2,7 +2,7 @@ seedrandom = require("seedrandom")
 
 isType = (type) => {
     (arg) => Object::toString.call(arg) == "[object #{ type }]"
-}
+};
 
 isFunc = isType("Function")
 
@@ -10,13 +10,13 @@ isObject = isType("Object")
 
 randomBoundedFloat = (prng, min = 0, max = 1) => {
     spread = max - min
-    prng() * spread + min
-}
+    return prng() * spread + min
+};
 
 randomBoundedInteger = (prng, min = 0, max = 1) => {
     spread = 1 + max - min
     Math.floor(prng() * spread) + min
-}
+};
 
 randomColor = (prng) => {
     byte = kind: "integer", min: 0, max: 255, prng: prng
@@ -26,7 +26,7 @@ randomColor = (prng) => {
     };
 
     new Stochator(byte, byte, byte, mutator).next
-}
+};
 
 randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
     seed = randomBoundedFloat(prng)
@@ -35,24 +35,24 @@ randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
         Math.min(max, Math.max(min, float))
     else
         float
-}
+};
 
 randomCharacter = (prng, lowercase) => {
     [min, max] = if lowercase then [97, 122] else [65, 90]
     mutator = (charCode) => String.fromCharCode(charCode)
     new Stochator({ kind: "integer", min, max, prng }, mutator).next
-}
+};
 
 randomSetMember = (prng, set) => {
     max = set.length - 1
     set.get(randomBoundedInteger(prng, 0, max))
-}
+};
 
 randomSetMemberWithoutReplacement = (prng, set) => {
     return undefined unless set.get(0)
     set.length -= 1
     set.pop(randomBoundedInteger(prng, 0, set.length))
-}
+};
 
 randomWeightedSetMember = (prng, set, weights) => {
     [member, weightSum, float] = [undefined, 0, randomBoundedFloat(prng)]
@@ -65,7 +65,7 @@ randomWeightedSetMember = (prng, set, weights) => {
     )
 
     member
-}
+};
 
 inverseNormalCumulativeDistribution = (probability) => {
     high = probability > 0.97575
@@ -102,13 +102,13 @@ inverseNormalCumulativeDistribution = (probability) => {
 
     mapMaxExp = (maxExp) => {
         (value, index) => value * Math.pow(base, maxExp - index)
-    }
+    };
 
     numerator = numCoefficients.map(mapMaxExp(numMaxExponent)).sum()
     denominator = denomCoeffcients.map(mapMaxExp(denomMaxExponent)).sum() + 1
 
     coefficient * numerator / denominator
-}
+};
 
 shuffleSet = (prng, set) => {
     values = set.copy()
@@ -120,18 +120,18 @@ shuffleSet = (prng, set) => {
         values[randomIndex] = tmp
 
     values
-}
+};
 
 floatGenerator = (prng, min, max, mean, stdev) => {
     if mean and stdev
         => randomNormallyDistributedFloat(prng, mean, stdev, min, max)
     else
         => randomBoundedFloat(prng, min, max)
-}
+};
 
 integerGenerator = (prng, min = 0, max = 1) => {
     => randomBoundedInteger(prng, min, max)
-}
+};
 
 setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
     if not values or not values.length
@@ -148,7 +148,7 @@ setGenerator = (prng, values, replacement = true, shuffle = false, weights = nul
             => randomSetMember(prng, set)
     else
         => randomSetMemberWithoutReplacement(prng, set)
-}
+};
 
 createGenerator = (config) => {
     kind = config.kind or "float"
@@ -172,7 +172,7 @@ createGenerator = (config) => {
         throw Error("#{ kind } not a recognized kind.")
     else
         generator
-}
+};
 
 getNextValueGenerator = (configs) => {
     configs[0] ?= {}
@@ -181,7 +181,7 @@ getNextValueGenerator = (configs) => {
         => generators[0]()
     else
         => (generator() for generator in generators)
-}
+};
 
 
 class Stochator

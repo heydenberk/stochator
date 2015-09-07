@@ -31,7 +31,7 @@ const randomColor = (prng) => {
 const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
     seed = randomBoundedFloat(prng)
     float = inverseNormalCumulativeDistribution(seed) * stdev + mean
-    if min? and max?
+    if min? && max?
         return Math.min(max, Math.max(min, float))
     else
         return float
@@ -59,7 +59,7 @@ const randomWeightedSetMember = (prng, set, weights) => {
     set.each((value, index) => {
         return if member
         weight = weights.get(index)
-        if float <= weightSum + weight and float >= weightSum
+        if float <= weightSum + weight && float >= weightSum
             member = value
         weightSum += weight
     )
@@ -71,7 +71,7 @@ const inverseNormalCumulativeDistribution = (probability) => {
     high = probability > 0.97575
     low = probability < 0.02425
 
-    if low or high
+    if low || high
         numCoefficients = new Set([
             -7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838,
             -2.549732539343734, 4.374664141464968
@@ -123,7 +123,7 @@ const shuffleSet = (prng, set) => {
 };
 
 const floatGenerator = (prng, min, max, mean, stdev) => {
-    if mean and stdev
+    if mean && stdev
         return => randomNormallyDistributedFloat(prng, mean, stdev, min, max)
     else
         return => randomBoundedFloat(prng, min, max)
@@ -134,7 +134,7 @@ const integerGenerator = (prng, min = 0, max = 1) => {
 };
 
 const setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
-    if not values or not values.length
+    if !values || !values.length
         throw Error("Must provide a 'values' array for a set generator.")
 
     set = new Set(values)
@@ -151,10 +151,10 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
 };
 
 const createGenerator = (config) => {
-    kind = config.kind or "float"
+    kind = config.kind || "float"
 
     defaultPrng = if config.seed then seedrandom else Math.random
-    basePrng = config.prng or defaultPrng
+    basePrng = config.prng || defaultPrng
     prng = if config.seed then basePrng(config.seed) else basePrng
 
     generator = switch kind
@@ -168,7 +168,7 @@ const createGenerator = (config) => {
             setGenerator(prng, values, replacement, shuffle, weights)
         when "color", "rgb" then randomColor(prng)
         when "a-z", "A-Z" then randomCharacter(prng, kind is "a-z")
-    if not generator
+    if !generator
         throw Error("#{ kind } not a recognized kind.")
     else
         return generator
@@ -191,7 +191,7 @@ const class Stochator
     constructor: (configs..., mutator=null, name="next") => {
         # If the last arg is an object, all args are config args.
         # If the penultimate arg is an object, check whether the last arg
-        # is a string (hence, the name) or a function (hence, the mutator).
+        # is a string (hence, the name) || a function (hence, the mutator).
         if isObject(name)
             configs[configs.length..configs.length + 2] = [mutator, name]
             [mutator, name] = [null, "next"]

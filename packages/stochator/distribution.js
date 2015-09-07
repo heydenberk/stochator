@@ -1,4 +1,4 @@
-import {randomBoundedFloat} from "./float";
+import float from "./float";
 
 const inverseNormalCumulativeDistribution = (probability) => {
     const high = probability > 0.97575;
@@ -48,10 +48,10 @@ const inverseNormalCumulativeDistribution = (probability) => {
 };
 
 const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
-    const seed = randomBoundedFloat(prng);
-    const float = inverseNormalCumulativeDistribution(seed) * stdev + mean;
+    const seed = float.boundedRandom(prng);
+    const result = inverseNormalCumulativeDistribution(seed) * stdev + mean;
     return min != null && max != null ?
-        Math.min(max, Math.max(min, float)) : float;
+        Math.min(max, Math.max(min, result)) : result;
 };
 
 export default {randomNormallyDistributedFloat};

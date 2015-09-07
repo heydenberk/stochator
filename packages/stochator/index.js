@@ -11,12 +11,12 @@ const floatGenerator = (prng, min, max, mean, stdev) => {
     if (mean && stdev) {
         return () => distribution.randomNormallyDistributedFloat(prng, mean, stdev, min, max);
     } else {
-        return () => float.randomBoundedFloat(prng, min, max);
+        return () => float.boundedRandom(prng, min, max);
     }
 };
 
 const integerGenerator = (prng, min = 0, max = 1) => {
-    return () => integer.randomBoundedInteger(prng, min, max);
+    return () => integer.boundedRandom(prng, min, max);
 };
 
 const setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
@@ -25,15 +25,15 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
     }
 
     if (shuffle) {
-        return () => set.shuffleSet(prng, values);
+        return () => set.shuffle(prng, values);
     } else if (replacement) {
         if (weights) {
-            return () => set.randomWeightedSetMember(prng, values, weights);
+            return () => set.weightedRandomMember(prng, values, weights);
         } else {
-            return () => set.randomSetMember(prng, values);
+            return () => set.randomMember(prng, values);
         }
     } else {
-        return () => set.randomSetMemberWithoutReplacement(prng, values);
+        return () => set.randomMemberWithoutReplacement(prng, values);
     }
 };
 

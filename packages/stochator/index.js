@@ -126,14 +126,14 @@ const shuffleSet = (prng, set) => {
 
 const floatGenerator = (prng, min, max, mean, stdev) => {
     if (mean && stdev) {
-        return => randomNormallyDistributedFloat(prng, mean, stdev, min, max)
+        return () => randomNormallyDistributedFloat(prng, mean, stdev, min, max)
     } else {
-        return => randomBoundedFloat(prng, min, max)
+        return () => randomBoundedFloat(prng, min, max)
     }
 };
 
 const integerGenerator = (prng, min = 0, max = 1) => {
-    return => randomBoundedInteger(prng, min, max)
+    return () => randomBoundedInteger(prng, min, max)
 };
 
 const setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
@@ -143,16 +143,16 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
 
     set = new Set(values)
     if (shuffle) {
-        return => shuffleSet(prng, set)
+        return () => shuffleSet(prng, set)
     } else if (replacement) {
         if (weights) {
             weightsSet = new Set(weights)
-            return => randomWeightedSetMember(prng, set, weightsSet)
+            return () => randomWeightedSetMember(prng, set, weightsSet)
         } else {
-            return => randomSetMember(prng, set)
+            return () => randomSetMember(prng, set)
         }
     } else {
-        return => randomSetMemberWithoutReplacement(prng, set)
+        return () => randomSetMemberWithoutReplacement(prng, set)
     }
 };
 
@@ -185,9 +185,9 @@ const getNextValueGenerator = (configs) => {
     configs[0] = configs[0] ? configs[0] : {}
     generators = [for (config of configs) createGenerator(config)]
     if (generators.length === 1) {
-        return => generators[0]()
+        return () => generators[0]()
     } else {
-        return => [for (generator of generators) generator()]
+        return () => [for (generator of generators) generator()]
     }
 };
 

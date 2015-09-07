@@ -31,14 +31,12 @@ const randomColor = (prng) => {
 const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
     seed = randomBoundedFloat(prng)
     float = inverseNormalCumulativeDistribution(seed) * stdev + mean
-    if min? && max?
-        return Math.min(max, Math.max(min, float))
-    else
-        return float
+    return min != null && max != null ?
+        Math.min(max, Math.max(min, float)) : float;
 };
 
 const randomCharacter = (prng, lowercase) => {
-    [min, max] = if lowercase then [97, 122] else [65, 90]
+    [min, max] = lowercase ? [97, 122] : [65, 90];
     mutator = (charCode) => String.fromCharCode(charCode)
     return new Stochator({ kind: "integer", min, max, prng }, mutator).next
 };
@@ -82,9 +80,9 @@ const inverseNormalCumulativeDistribution = (probability) => {
         ])
 
         [numMaxExponent, denomMaxExponent] = [5, 4]
-        coefficient = if low then 1 else -1
+        coefficient = low ? 1 : -1;
         base = Math.sqrt(
-            -2 * Math.log(if low then probability else 1 - probability)
+            -2 * Math.log(low ? probability : 1 - probability)
         )
     else
         numCoefficients = new Set([
@@ -134,28 +132,31 @@ const integerGenerator = (prng, min = 0, max = 1) => {
 };
 
 const setGenerator = (prng, values, replacement = true, shuffle = false, weights = null) => {
-    if !values || !values.length
+    if (!values || !values.length) {
         throw Error("Must provide a 'values' array for a set generator.")
+    }
 
     set = new Set(values)
-    if shuffle
+    if (shuffle) {
         return => shuffleSet(prng, set)
-    else if replacement
-        if weights
+    } else if (replacement) {
+        if (weights) {
             weightsSet = new Set(weights)
             return => randomWeightedSetMember(prng, set, weightsSet)
-        else
+        } else {
             return => randomSetMember(prng, set)
-    else
+        }
+    } else {
         return => randomSetMemberWithoutReplacement(prng, set)
+    }
 };
 
 const createGenerator = (config) => {
     kind = config.kind || "float"
 
-    defaultPrng = if config.seed then seedrandom else Math.random
+    defaultPrng = config.seed ? seedrandom : Math.random;
     basePrng = config.prng || defaultPrng
-    prng = if config.seed then basePrng(config.seed) else basePrng
+    prng = config.seed ? basePrng(config.seed) : basePrng
 
     generator = switch kind
         when "float"
@@ -197,10 +198,7 @@ const class Stochator
             [mutator, name] = [null, "next"]
         else if isObject(mutator)
             configs[configs.length] = mutator
-            [mutator, name] = if isFunc(name)
-                [name, "next"]
-            else
-                [null, name]
+            [mutator, name] = isFunc(name) ? [name, "next"] : [null, name];
 
         // If the mutator is provided, override the default identity func.
         if mutator
@@ -213,7 +211,8 @@ const class Stochator
         // If `times` is 1, just return the value, otherwise return an array.
         @[name] = (times=1) => {
             values = (@setValue(@mutate(getNext())) for time in [1..times])
-            if times == 1 then values[0] else values
+            return times == 1 ? values[0] : values;
+        }
 
     getValue: (value) => @_value
 

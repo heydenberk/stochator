@@ -3,6 +3,12 @@ var Stochator = require('stochator');
 
 describe('Stochator (with seed STOCHATOR)', function() {
 
+    it('should fail with an invalid kind', function() {
+        assert.throws(function() {
+            return new Stochator({kind: 'GARBAGE'}).next();
+        });
+    });
+
     describe('the floating-point number generator', function() {
 
         it('should return a float between 0 and 1', function() {

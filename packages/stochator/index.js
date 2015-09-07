@@ -1,4 +1,6 @@
 import seedrandom from "seedrandom";
+import {randomBoundedFloat} from "./float";
+import randomBoundedInteger from "./integer";
 
 const isType = (type) => {
     return (arg) => Object.prototype.toString.call(arg) == `[object ${ type }]`
@@ -12,11 +14,6 @@ const isString = isType("String");
 
 
 const range = (start, end) => [for (i of Array(end - start).keys()) i + start];
-
-const randomBoundedFloat = (prng, min = 0, max = 1) => {
-    const spread = max - min;
-    return prng() * spread + min;
-};
 
 const randomBoundedInteger = (prng, min = 0, max = 1) => {
     const spread = 1 + max - min;

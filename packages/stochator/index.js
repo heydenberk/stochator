@@ -8,6 +8,8 @@ const isFunc = isType("Function");
 
 const isObject = isType("Object");
 
+const isString = isType("String");
+
 
 const range = (start, end) => [for (i of Array(end - start).keys()) i + start];
 
@@ -213,23 +215,27 @@ const getNextValueGenerator = (configs) => {
 };
 
 
+const parseArgs = (args) => {
+    const defaults = {configs: [], mutator: null, name: null};
+    return args.reduce((result, arg) => {
+        if (result.mutator || isString(arg)) {
+            result.name = arg;
+        } else if (isFunc(arg)) {
+            result.mutator = arg;
+        } else {
+            result.configs.push(arg);
+        }
+        return result;
+    }, defaults);
+};
+
+
 export default class Stochator {
 
     VERSION = "0.4"
 
     constructor(...args) {
-        let configs = args.slice(0, -2);
-        let [mutator, name] = args.slice(-2);
-        // If the last arg is an object, all args are config args.
-        // If the penultimate arg is an object, check whether the last arg
-        // is a string (hence, the name) || a function (hence, the mutator).
-        if (isObject(name)) {
-            configs = args;
-            [mutator, name] = [null, "next"];
-        } else if (isObject(mutator)) {
-            configs = args.slice(0, -1);
-            [mutator, name] = isFunc(name) ? [name, "next"] : [null, name];
-        }
+        const {configs, mutator, name} = parseArgs(args);
 
         // If the mutator is provided, override the default identity func.
         if (mutator) {
@@ -241,12 +247,16 @@ export default class Stochator {
 
         // Assign `name` to the next mutated value(s), after `times` iterations.
         // If `times` is 1, just return the value, otherwise return an array.
-        this[name] = (times=1) => {
+        this.next = (times=1) => {
             const values = [
                 for (time of range(1, times + 1))
                 this.setValue(this.mutate(getNext()))
             ];
             return times == 1 ? values[0] : values;
+        };
+
+        if (name) {
+            this[name] = (...args) => this.next(...args);
         }
     }
 

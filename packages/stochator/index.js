@@ -163,17 +163,24 @@ const createGenerator = (config) => {
     basePrng = config.prng || defaultPrng
     prng = config.seed ? basePrng(config.seed) : basePrng
 
-    generator = switch kind
-        when "float"
+    let generator = null;
+    switch (kind) {
+        case "float":
             { min, max, mean, stdev } = config
-            floatGenerator(prng, min, max, mean, stdev)
-        when "integer"
-            integerGenerator(prng, config.min, config.max)
-        when "set"
+            generator = floatGenerator(prng, min, max, mean, stdev)
+        case "integer":
+            generator = integerGenerator(prng, config.min, config.max)
+        case "set":
             { values, replacement, shuffle, weights } = config
-            setGenerator(prng, values, replacement, shuffle, weights)
-        when "color", "rgb" then randomColor(prng)
-        when "a-z", "A-Z" then randomCharacter(prng, kind is "a-z")
+            generator = setGenerator(prng, values, replacement, shuffle, weights)
+        case "color":
+        case "rgb":
+            generator = randomColor(prng)
+        case "a-z":
+        case "A-Z":
+            generator = randomCharacter(prng, kind === "a-z")
+    }
+
     if (!generator) {
         throw Error("#{ kind } not a recognized kind.")
     } else {

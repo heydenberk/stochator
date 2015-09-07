@@ -1,4 +1,4 @@
-seedrandom = require("seedrandom")
+import seedrandom from "seedrandom";
 
 const isType = (type) => {
     return (arg) => Object::toString.call(arg) == "[object #{ type }]"

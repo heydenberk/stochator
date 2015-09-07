@@ -11,19 +11,19 @@ const isObject = isType("Object");
 const range = (start, end) => [for (i of Array(end - start).keys()) i + start];
 
 const randomBoundedFloat = (prng, min = 0, max = 1) => {
-    spread = max - min;
+    const spread = max - min;
     return prng() * spread + min;
 };
 
 const randomBoundedInteger = (prng, min = 0, max = 1) => {
-    spread = 1 + max - min;
+    const spread = 1 + max - min;
     return Math.floor(prng() * spread) + min;
 };
 
 const randomColor = (prng) => {
-    byte = {kind: "integer", min: 0, max: 255, prng};
-    mutator = (bytes) => {
-        [red, green, blue] = bytes;
+    const byte = {kind: "integer", min: 0, max: 255, prng};
+    const mutator = (bytes) => {
+        const [red, green, blue] = bytes;
         return { red, green, blue };
     };
 
@@ -31,20 +31,20 @@ const randomColor = (prng) => {
 };
 
 const randomNormallyDistributedFloat = (prng, mean, stdev, min, max) => {
-    seed = randomBoundedFloat(prng);
-    float = inverseNormalCumulativeDistribution(seed) * stdev + mean;
+    const seed = randomBoundedFloat(prng);
+    const float = inverseNormalCumulativeDistribution(seed) * stdev + mean;
     return min != null && max != null ?
         Math.min(max, Math.max(min, float)) : float;
 };
 
 const randomCharacter = (prng, lowercase) => {
-    [min, max] = lowercase ? [97, 122] : [65, 90];
-    mutator = (charCode) => String.fromCharCode(charCode);
+    const [min, max] = lowercase ? [97, 122] : [65, 90];
+    const mutator = (charCode) => String.fromCharCode(charCode);
     return new Stochator({ kind: "integer", min, max, prng }, mutator).next;
 };
 
 const randomSetMember = (prng, set) => {
-    max = set.length - 1;
+    const max = set.length - 1;
     return set.get(randomBoundedInteger(prng, 0, max));
 };
 
@@ -56,12 +56,12 @@ const randomSetMemberWithoutReplacement = (prng, set) => {
 };
 
 const randomWeightedSetMember = (prng, set, weights) => {
-    [member, weightSum, float] = [undefined, 0, randomBoundedFloat(prng)];
+    let [member, weightSum, float] = [undefined, 0, randomBoundedFloat(prng)];
     set.each((value, index) => {
         if (member) {
             return;
         }
-        weight = weights.get(index);
+        const weight = weights.get(index);
         if (float <= weightSum + weight && float >= weightSum) {
             member = value;
         }
@@ -72,8 +72,9 @@ const randomWeightedSetMember = (prng, set, weights) => {
 };
 
 const inverseNormalCumulativeDistribution = (probability) => {
-    high = probability > 0.97575;
-    low = probability < 0.02425;
+    const high = probability > 0.97575;
+    const low = probability < 0.02425;
+    let numCoefficients, denomCoeffcients, numMaxExponent, denomMaxExponent, coefficient, base;
 
     if (low || high) {
         numCoefficients = new Set([
@@ -105,18 +106,18 @@ const inverseNormalCumulativeDistribution = (probability) => {
         base = Math.pow(coefficient, 2);
     }
 
-    mapMaxExp = (maxExp) => {
+    const mapMaxExp = (maxExp) => {
         return (value, index) => value * Math.pow(base, maxExp - index);
     };
 
-    numerator = numCoefficients.map(mapMaxExp(numMaxExponent)).sum();
-    denominator = denomCoeffcients.map(mapMaxExp(denomMaxExponent)).sum() + 1;
+    const numerator = numCoefficients.map(mapMaxExp(numMaxExponent)).sum();
+    const denominator = denomCoeffcients.map(mapMaxExp(denomMaxExponent)).sum() + 1;
 
     return coefficient * numerator / denominator;
 };
 
 const shuffleSet = (prng, set) => {
-    values = set.copy();
+    let values = set.copy();
     for (index of range(0, values.length)) {
         randomIndex = randomBoundedInteger(prng, 0, index);
 
@@ -144,7 +145,7 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
         throw Error("Must provide a 'values' array for a set generator.")
     }
 
-    set = new Set(values);
+    const set = new Set(values);
     if (shuffle) {
         return () => shuffleSet(prng, set);
     } else if (replacement) {
@@ -160,11 +161,11 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
 };
 
 const createGenerator = (config) => {
-    kind = config.kind || "float";
+    const kind = config.kind || "float";
 
-    defaultPrng = config.seed ? seedrandom : Math.random;
-    basePrng = config.prng || defaultPrng;
-    prng = config.seed ? basePrng(config.seed) : basePrng;
+    const defaultPrng = config.seed ? seedrandom : Math.random;
+    const basePrng = config.prng || defaultPrng;
+    const prng = config.seed ? basePrng(config.seed) : basePrng;
 
     let generator = null;
     switch (kind) {
@@ -195,7 +196,7 @@ const createGenerator = (config) => {
 
 const getNextValueGenerator = (configs) => {
     configs[0] = configs[0] ? configs[0] : {};
-    generators = [for (config of configs) createGenerator(config)];
+    const generators = [for (config of configs) createGenerator(config)];
     if (generators.length === 1) {
         return () => generators[0]();
     } else {
@@ -228,7 +229,7 @@ export default class Stochator {
         }
 
         // Transform the configs to a func to get the next value.
-        getNext = getNextValueGenerator(configs);
+        const getNext = getNextValueGenerator(configs);
 
         // Assign `name` to the next mutated value(s), after `times` iterations.
         // If `times` is 1, just return the value, otherwise return an array.

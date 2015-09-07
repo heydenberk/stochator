@@ -1,26 +1,57 @@
 {
-    "bugs": "http://github.com/heydenberk/stochator/issues",
-    "description": "A tiny library providing for creating a variety of random value generators.",
-    "devDependencies": {
-        "coffee-script": ">=1.0.1",
-        "mocha": ">=2.2.4"
-    },
-    "dependencies": {
-        "seedrandom": ">=2.3.1"
-    },
-    "homepage": "https://github.com/heydenberk/stochator",
-    "keywords": ["random", "numbers", "values", "color", "string", "integer", "array", "shuffle", "set", "markov", "chain", "generator", "prng", "normal", "distribution"],
-    "license": "MPLv2",
-    "main": "build/stochator.js",
-    "name": "stochator",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/heydenberk/stochator"
-    },
-    "scripts": {
-        "build": "make build/stochator.js",
-        "prepublish": "make publish",
-        "test": "mocha"
-    },
-    "version": "0.4.1"
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "stage": 0
+        }
+      ]
+    ]
+  },
+  "bugs": "http://github.com/heydenberk/stochator/issues",
+  "description": "A tiny library providing for creating a variety of random value generators.",
+  "devDependencies": {
+    "babel": "^5.8.23",
+    "babelify": "^6.3.0",
+    "browserify": "^11.0.1",
+    "mocha": "^2.3.1"
+  },
+  "dependencies": {
+    "lodash": "^3.10.1",
+    "seedrandom": "^2.4.2"
+  },
+  "homepage": "https://github.com/heydenberk/stochator",
+  "keywords": [
+    "random",
+    "numbers",
+    "values",
+    "color",
+    "string",
+    "integer",
+    "array",
+    "shuffle",
+    "set",
+    "markov",
+    "chain",
+    "generator",
+    "prng",
+    "normal",
+    "distribution"
+  ],
+  "license": "MPL-2.0",
+  "main": "build/index.js",
+  "name": "stochator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heydenberk/stochator"
+  },
+  "scripts": {
+    "build-browser": "npm install && browserify src/index.js > Stochator.js",
+    "build": "babel src/ --out-dir=build --stage=0",
+    "clean": "rm -rf build/ node_modules/",
+    "prepublish": "npm run build",
+    "test": "mocha"
+  },
+  "version": "0.5.0"
 }

@@ -55,10 +55,13 @@ const randomSetMemberWithoutReplacement = (prng, set) => {
 const randomWeightedSetMember = (prng, set, weights) => {
     [member, weightSum, float] = [undefined, 0, randomBoundedFloat(prng)]
     set.each((value, index) => {
-        return if member
+        if (member) {
+            return;
+        }
         weight = weights.get(index)
-        if float <= weightSum + weight && float >= weightSum
+        if (float <= weightSum + weight && float >= weightSum) {
             member = value
+        }
         weightSum += weight
     )
 
@@ -69,7 +72,7 @@ const inverseNormalCumulativeDistribution = (probability) => {
     high = probability > 0.97575
     low = probability < 0.02425
 
-    if low || high
+    if (low || high) {
         numCoefficients = new Set([
             -7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838,
             -2.549732539343734, 4.374664141464968
@@ -84,7 +87,7 @@ const inverseNormalCumulativeDistribution = (probability) => {
         base = Math.sqrt(
             -2 * Math.log(low ? probability : 1 - probability)
         )
-    else
+    } else {
         numCoefficients = new Set([
             -3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2,
             1.383577518672690e2, -3.066479806614716e1, 2.506628277459239
@@ -97,6 +100,7 @@ const inverseNormalCumulativeDistribution = (probability) => {
         [numMaxExponent, denomMaxExponent] = [5, 5]
         coefficient = probability - 0.5
         base = Math.pow(coefficient, 2)
+    }
 
     mapMaxExp = (maxExp) => {
         return (value, index) => value * Math.pow(base, maxExp - index)
@@ -121,10 +125,11 @@ const shuffleSet = (prng, set) => {
 };
 
 const floatGenerator = (prng, min, max, mean, stdev) => {
-    if mean && stdev
+    if (mean && stdev) {
         return => randomNormallyDistributedFloat(prng, mean, stdev, min, max)
-    else
+    } else {
         return => randomBoundedFloat(prng, min, max)
+    }
 };
 
 const integerGenerator = (prng, min = 0, max = 1) => {
@@ -169,19 +174,21 @@ const createGenerator = (config) => {
             setGenerator(prng, values, replacement, shuffle, weights)
         when "color", "rgb" then randomColor(prng)
         when "a-z", "A-Z" then randomCharacter(prng, kind is "a-z")
-    if !generator
+    if (!generator) {
         throw Error("#{ kind } not a recognized kind.")
-    else
+    } else {
         return generator
+    }
 };
 
 const getNextValueGenerator = (configs) => {
     configs[0] ?= {}
     generators = (createGenerator(config) for config in configs)
-    if generators.length is 1
+    if (generators.length is 1) {
         return => generators[0]()
-    else
+    } else {
         return => (generator() for generator in generators)
+    }
 };
 
 
@@ -193,16 +200,18 @@ const class Stochator
         // If the last arg is an object, all args are config args.
         // If the penultimate arg is an object, check whether the last arg
         // is a string (hence, the name) || a function (hence, the mutator).
-        if isObject(name)
+        if (isObject(name)) {
             configs[configs.length..configs.length + 2] = [mutator, name]
             [mutator, name] = [null, "next"]
-        else if isObject(mutator)
+        } else if (isObject(mutator)) {
             configs[configs.length] = mutator
             [mutator, name] = isFunc(name) ? [name, "next"] : [null, name];
+        }
 
         // If the mutator is provided, override the default identity func.
-        if mutator
+        if (mutator) {
             @mutate = (nextValue) => mutator(nextValue, @getValue())
+        }
 
         // Transform the configs to a func to get the next value.
         getNext = getNextValueGenerator(configs)
@@ -224,8 +233,8 @@ const class Stochator
 
     _value: 0
 
-const if module?.exports
+if module and module.exports {
     module.exports = Stochator
-const else
+} else {
     this.Stochator = Stochator
-
+}

@@ -15,10 +15,16 @@
     "babel": "^5.8.23",
     "babelify": "^6.3.0",
     "browserify": "^11.0.1",
-    "mocha": "^2.3.1"
+    "lodash": ">=3.0",
+    "mocha": "^2.3.1",
+    "uglify-js": "^2.4.24",
+    "uglifyify": "^3.0.1"
   },
   "dependencies": {
-    "lodash": "^3.10.1",
+    "lodash.identity": ">=3.0",
+    "lodash.isfunction": ">=3.0",
+    "lodash.isstring": ">=3.0",
+    "lodash.range": ">=3.0",
     "seedrandom": "^2.4.2"
   },
   "homepage": "https://github.com/heydenberk/stochator",
@@ -47,7 +53,8 @@
     "url": "https://github.com/heydenberk/stochator"
   },
   "scripts": {
-    "build-browser": "npm install && browserify src/index.js > Stochator.js",
+    "build-browser": "npm install && browserify --no-builtins src/index.js > stochator.js",
+    "build-browser-min": "npm install && browserify -g uglifyify --no-builtins src/index.js | uglifyjs -c > stochator.min.js",
     "build": "babel src/ --out-dir=build --stage=0",
     "clean": "rm -rf build/ node_modules/",
     "prepublish": "npm run build",

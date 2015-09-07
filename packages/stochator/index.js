@@ -44,25 +44,27 @@ const randomCharacter = (prng, lowercase) => {
     return new Stochator({ kind: "integer", min, max, prng }, mutator).next;
 };
 
-const randomSetMember = (prng, set) => {
-    const max = set.length - 1;
-    return set.get(randomBoundedInteger(prng, 0, max));
+const randomSetMember = (prng, values) => {
+    const max = values.length - 1;
+    return values[randomBoundedInteger(prng, 0, max)];
 };
 
-const randomSetMemberWithoutReplacement = (prng, set) => {
-    if (set.get(0)) {
-        set.length -= 1;
-        return set.pop(randomBoundedInteger(prng, 0, set.length));
+const randomSetMemberWithoutReplacement = (prng, values) => {
+    if (values.length > 0) {
+        const index = randomBoundedInteger(prng, 0, values.length - 1);
+        const value = values[index];
+        values.splice(index, 1);
+        return value;
     }
 };
 
-const randomWeightedSetMember = (prng, set, weights) => {
+const randomWeightedSetMember = (prng, values, weights) => {
     let [member, weightSum, float] = [undefined, 0, randomBoundedFloat(prng)];
-    set.each((value, index) => {
+    values.forEach((value, index) => {
         if (member) {
             return;
         }
-        const weight = weights.get(index);
+        const weight = weights[index];
         if (float <= weightSum + weight && float >= weightSum) {
             member = value;
         }
@@ -78,14 +80,14 @@ const inverseNormalCumulativeDistribution = (probability) => {
     let numCoefficients, denomCoeffcients, numMaxExponent, denomMaxExponent, coefficient, base;
 
     if (low || high) {
-        numCoefficients = new Set([
+        numCoefficients = [
             -7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838,
             -2.549732539343734, 4.374664141464968
-        ]);
-        denomCoeffcients = new Set([
+        ];
+        denomCoeffcients = [
             7.784695709041462e-3, 3.224671290700398e-1,
             2.445134137142996, 3.754408661907416
-        ]);
+        ];
 
         [numMaxExponent, denomMaxExponent] = [5, 4];
         coefficient = low ? 1 : -1;
@@ -93,14 +95,14 @@ const inverseNormalCumulativeDistribution = (probability) => {
             -2 * Math.log(low ? probability : 1 - probability)
         );
     } else {
-        numCoefficients = new Set([
+        numCoefficients = [
             -3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2,
             1.383577518672690e2, -3.066479806614716e1, 2.506628277459239
-        ]);
-        denomCoeffcients = new Set([
+        ];
+        denomCoeffcients = [
             -5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2,
             6.680131188771972e1, -1.328068155288572e1
-        ]);
+        ];
 
         [numMaxExponent, denomMaxExponent] = [5, 5];
         coefficient = probability - 0.5;
@@ -111,22 +113,24 @@ const inverseNormalCumulativeDistribution = (probability) => {
         return (value, index) => value * Math.pow(base, maxExp - index);
     };
 
-    const numerator = numCoefficients.map(mapMaxExp(numMaxExponent)).sum();
-    const denominator = denomCoeffcients.map(mapMaxExp(denomMaxExponent)).sum() + 1;
+    const sum = (arr) => arr.reduce((result, value) => result + value, 0);
+
+    const numerator = sum(numCoefficients.map(mapMaxExp(numMaxExponent)));
+    const denominator = sum(denomCoeffcients.map(mapMaxExp(denomMaxExponent))) + 1;
 
     return coefficient * numerator / denominator;
 };
 
-const shuffleSet = (prng, set) => {
-    let values = set.copy();
-    for (index of range(0, values.length)) {
+const shuffleSet = (prng, values) => {
+    let valuesRef = [...values];
+    for (index of range(0, valuesRef.length)) {
         randomIndex = randomBoundedInteger(prng, 0, index);
 
-        tmp = values[index];
-        values[index] = values[randomIndex];
-        values[randomIndex] = tmp;
+        tmp = valuesRef[index];
+        valuesRef[index] = valuesRef[randomIndex];
+        valuesRef[randomIndex] = tmp;
     }
-    return values;
+    return valuesRef;
 };
 
 const floatGenerator = (prng, min, max, mean, stdev) => {
@@ -146,18 +150,16 @@ const setGenerator = (prng, values, replacement = true, shuffle = false, weights
         throw Error("Must provide a 'values' array for a set generator.")
     }
 
-    const set = new Set(values);
     if (shuffle) {
-        return () => shuffleSet(prng, set);
+        return () => shuffleSet(prng, values);
     } else if (replacement) {
         if (weights) {
-            weightsSet = new Set(weights);
-            return () => randomWeightedSetMember(prng, set, weightsSet);
+            return () => randomWeightedSetMember(prng, values, weights);
         } else {
-            return () => randomSetMember(prng, set);
+            return () => randomSetMember(prng, values);
         }
     } else {
-        return () => randomSetMemberWithoutReplacement(prng, set);
+        return () => randomSetMemberWithoutReplacement(prng, values);
     }
 };
 

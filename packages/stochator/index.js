@@ -1,7 +1,7 @@
 import seedrandom from "seedrandom";
 
 const isType = (type) => {
-    return (arg) => Object.prototype.toString.call(arg) == "[object #{ type }]"
+    return (arg) => Object.prototype.toString.call(arg) == `[object ${ type }]`
 };
 
 const isFunc = isType("Function");

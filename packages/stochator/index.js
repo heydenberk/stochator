@@ -19,7 +19,7 @@ const randomBoundedInteger = (prng, min = 0, max = 1) => {
 };
 
 const randomColor = (prng) => {
-    byte = kind: "integer", min: 0, max: 255, prng: prng
+    byte = {kind: "integer", min: 0, max: 255, prng}
     mutator = (bytes) => {
         [red, green, blue] = bytes
         return { red, green, blue }

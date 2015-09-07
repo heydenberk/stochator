@@ -64,7 +64,7 @@ const randomWeightedSetMember = (prng, set, weights) => {
             member = value
         }
         weightSum += weight
-    )
+    })
 
     return member
 };

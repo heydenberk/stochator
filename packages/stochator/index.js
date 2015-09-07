@@ -1,11 +1,11 @@
 import _ from "lodash";
-import seedrandom from "seedrandom";
-import float from "./float";
-import integer from "./integer";
-import set from "./set";
-import string from "./string";
 import color from "./color";
 import distribution from "./distribution";
+import float from "./float";
+import integer from "./integer";
+import seedrandom from "seedrandom";
+import set from "./set";
+import string from "./string";
 
 const floatGenerator = (prng, min, max, mean, stdev) => {
     if (mean && stdev) {

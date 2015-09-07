@@ -176,3 +176,7 @@ export default class Stochator {
 
     _value = 0
 }
+
+if (global) {
+    global.Stochator = Stochator;
+}

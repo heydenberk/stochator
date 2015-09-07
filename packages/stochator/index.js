@@ -192,11 +192,11 @@ const getNextValueGenerator = (configs) => {
 };
 
 
-const class Stochator
+export default class Stochator {
 
     VERSION = "0.4"
 
-    constructor: (configs..., mutator=null, name="next") => {
+    constructor(configs..., mutator=null, name="next") {
         // If the last arg is an object, all args are config args.
         // If the penultimate arg is an object, check whether the last arg
         // is a string (hence, the name) || a function (hence, the mutator).
@@ -222,14 +222,24 @@ const class Stochator
             values = (this.setValue(this.mutate(getNext())) for time in [1..times])
             return times == 1 ? values[0] : values;
         }
+    }
 
-    getValue: (value) => this._value
+    getValue() {
+        return this._value;
+    }
 
-    mutate: (value) => value
+    mutate(value) {
+        return value;
+    }
 
-    setValue: (value) => this._value = value
+    setValue(value) {
+        this._value = value;
+        return this._value;
+    }
 
-    toString: => "[object Stochator]"
+    toString() {
+        return "[object Stochator]";
+    }
 
-    _value: 0
-
+    _value = 0
+}

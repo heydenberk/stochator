@@ -114,9 +114,8 @@ export default class Stochator {
         const {configs, mutator, name} = parseArgs(args);
 
         // If the mutator is provided, override the default identity func.
-        if (mutator) {
-            this.mutate = (nextValue) => mutator(nextValue, this.getValue());
-        }
+        this.mutate = mutator ?
+            (nextValue) => mutator(nextValue, this.getValue()) : _.identity;
 
         // Transform the configs to a func to get the next value.
         const getNext = getNextValueGenerator(configs);
@@ -138,10 +137,6 @@ export default class Stochator {
 
     getValue() {
         return this._value;
-    }
-
-    mutate(value) {
-        return value;
     }
 
     setValue(value) {

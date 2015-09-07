@@ -1,6 +1,6 @@
 import seedrandom from "seedrandom";
 import {randomBoundedFloat} from "./float";
-import randomBoundedInteger from "./integer";
+import {randomBoundedInteger} from "./integer";
 
 const isType = (type) => {
     return (arg) => Object.prototype.toString.call(arg) == `[object ${ type }]`
@@ -14,11 +14,6 @@ const isString = isType("String");
 
 
 const range = (start, end) => [for (i of Array(end - start).keys()) i + start];
-
-const randomBoundedInteger = (prng, min = 0, max = 1) => {
-    const spread = 1 + max - min;
-    return Math.floor(prng() * spread) + min;
-};
 
 const randomColor = (prng) => {
     const byte = {kind: "integer", min: 0, max: 255, prng};

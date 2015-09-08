@@ -24,6 +24,8 @@ To create a `Stochator` object, simply invoke the constructor and pass it an `op
 Valid kinds include `float`, `integer`, `set`, `color`, `a-z` and `A-Z`.
 
 ## Floating-point decimals
+*New in 0.5: available as `Stochator.randomFloat(min, max, prng=Math.random)`*
+
 It's very easy generate a float between 0 and 1.
 
 ````js
@@ -37,6 +39,8 @@ This is not very exciting because it simply wraps the built-in `Math.random` met
 
 
 ## Floats from an interval
+*New in 0.5: available as `Stochator.randomFloat(min, max, prng=Math.random)`*
+
 Specifying a min and a max allows us to create random numbers in the interval (min, max), not inclusive.
 
 ````js
@@ -50,6 +54,8 @@ radianGenerator.next(); // 4.012664264853087
 ````
 
 ## Floats from a normal distribution
+*New in 0.5: available as: `Stochator.fromDistribution.normal(mean, stdev, min, max, prng=Math.random)`*
+
 We can also generate random floats from a normal distribution. Min and max are optional, and when provided will result in truncation of all results outside of [min, max].
 
 ````js
@@ -65,6 +71,8 @@ testScores.next(); // 75.81242027226946
 ````
 
 ## Integers
+*New in 0.5: available as `Stochator.randomInteger(min, max, prng=Math.random)`*
+
 For integers, the interval [min, max] is inclusive. Notice that the optional argument `name` allows us to alias `next` to a more descriptive method name.
 
 ````js
@@ -79,6 +87,7 @@ die.roll(); // 2
 ````
 
 ## Multiple results
+
 If the `next` method (or a method aliased to it) is passed an integer `n`, it will return an n-length array of results. Using the die instance from the previous example:
 
 ````js
@@ -89,6 +98,8 @@ die.roll(5); // [6, 3, 6, 6, 5]
 
 
 ## From sets
+*New in 0.5: available as `Stochator.randomSetMember(values, prng=Math.random)`*
+
 We can generate random values from arbitary sets.
 
 ````js
@@ -102,6 +113,8 @@ dayGenerator.next(); // monday
 ````
 	
 ## From sets with weights
+*New in 0.5: available as `Stochator.weightedRandomSetMember(values, weights, prng=Math.random)`*
+
 What if we favor the weekend? Well, we can pass `weights`, an array of the same length as `values` consisting of probabilities out of 1 that correspond to `values`.
 
 ````js
@@ -116,6 +129,8 @@ biasedDayGenerator.next(); // saturday
 ````
 
 ## From sets without replacement
+*New in 0.5: available as `Stochator.randomSetMemberWithoutReplacement(set, prng=Math.random)`*
+
 Passing a `replacement` property with a falsy value will result in each random
 value generation to be removed from the set.
 
@@ -132,6 +147,8 @@ var noOnesChore = chores.next(); // undefined
 ````
 
 ## From predefined sets
+*New in 0.5: available as `Stochator.randomColor(prng=Math.random)`, `Stochator.randomLowercaseCharacter(prng=Math.random)` and `Stochator.randomUppercaseCharacter(prng=Math.random)`*
+
 At present, predefined sets include `"a-z"`, `"A-Z"` and `"color"`.
 
 ````js
@@ -270,5 +287,8 @@ new Stochator({ seed: 'STOCHATOR' }).next(); // Still always 0.4045178783365678
 ````
 
 ## Changelog
+### 0.5
+The entire project has been rewritten to use ES6 features, with translation handled by babel and browserify.
+In addition, `Stochator` has been supplemented with static methods to facilitate single-use value generators.
 ### 0.4
 `prng` can be provided on a config object to override `Math.random` as the pseudo-random number generator. `seed` can be provided to seed the PRNG with an initial value. If both are provided, the PRNG will be the function returned by calling `config.prng(config.seed)`; if just `seed` is provided, the PRNG will default to [seedrandom](https://github.com/davidbau/seedrandom) rather than `Math.random`.

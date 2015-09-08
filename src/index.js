@@ -1,4 +1,7 @@
-import _ from "lodash";
+import identity from "lodash.identity";
+import isFunction from "lodash.isFunction";
+import isString from "lodash.isString";
+import range from "lodash.range";
 import color from "./color";
 import distribution from "./distribution";
 import float from "./float";
@@ -94,9 +97,9 @@ const getPrng = ({seed, prng}) => {
 const parseArgs = (args) => {
     const defaults = {configs: [], mutator: null, name: null};
     return args.reduce((result, arg) => {
-        if (result.mutator || _.isString(arg)) {
+        if (result.mutator || isString(arg)) {
             result.name = arg;
-        } else if (_.isFunction(arg)) {
+        } else if (isFunction(arg)) {
             result.mutator = arg;
         } else {
             result.configs.push(arg);
@@ -138,7 +141,7 @@ export default class Stochator {
 
         // If the mutator is provided, override the default identity func.
         this.mutate = mutator ?
-            (nextValue) => mutator(nextValue, this.getValue()) : _.identity;
+            (nextValue) => mutator(nextValue, this.getValue()) : identity;
 
         // Transform the configs to a func to get the next value.
         const getNext = getNextValueGenerator(configs);
@@ -147,7 +150,7 @@ export default class Stochator {
         // If `times` is 1, just return the value, otherwise return an array.
         this.next = (times=1) => {
             const values = [
-                for (time of _.range(1, times + 1))
+                for (time of range(1, times + 1))
                 this.setValue(this.mutate(getNext()))
             ];
             return times == 1 ? values[0] : values;
@@ -172,4 +175,8 @@ export default class Stochator {
     }
 
     _value = 0
+}
+
+if (global) {
+    global.Stochator = Stochator;
 }

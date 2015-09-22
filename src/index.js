@@ -3,6 +3,7 @@ import isFunction from "lodash.isFunction";
 import isRegExp from "lodash.isregexp";
 import isString from "lodash.isString";
 import range from "lodash.range";
+import boolean from "./boolean";
 import color from "./color";
 import distribution from "./distribution";
 import float from "./float";
@@ -10,6 +11,8 @@ import integer from "./integer";
 import seedrandom from "seedrandom";
 import set from "./set";
 import string from "./string";
+
+const booleanGenerator = ({prng}) => () => boolean.random(prng);
 
 const colorGenerator = ({prng}) => () => color.randomRgb(prng);
 
@@ -55,6 +58,7 @@ const stringGenerator = ({kind, expression=`[${kind}]`, ignoreCase=false, maxWil
 };
 
 const KIND_GENERATORS = {
+    "boolean": booleanGenerator,
     "float": floatGenerator,
     "integer": integerGenerator,
     "set": setGenerator,
@@ -123,6 +127,8 @@ export default class Stochator {
     static fromDistribution = {
         normal: distribution.randomNormallyDistributedFloat
     };
+
+    static randomBoolean = boolean.random;
 
     static randomColor = color.randomRgb;
 

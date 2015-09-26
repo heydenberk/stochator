@@ -1,5 +1,6 @@
 import identity from "lodash.identity";
 import isFunction from "lodash.isFunction";
+import isRegExp from "lodash.isregexp";
 import isString from "lodash.isString";
 import range from "lodash.range";
 import color from "./color";
@@ -42,10 +43,15 @@ const setGenerator = ({values, prng, replacement=true, shuffle=false, weights=nu
     }
 };
 
-const stringGenerator = ({kind, prng}) => {
-    return kind === "a-z" ?
-        () => string.randomLowercaseCharacter(prng)
-        : () => string.randomUppercaseCharacter(prng);
+const stringGenerator = ({kind, expression=`[${kind}]`, ignoreCase=false, maxWildcard=100, prng, unicode=false}) => {
+    const isRe = isRegExp(expression);
+    const exprSource = isRe ? expression.source : expression;
+    const options = {
+        ignoreCase: ignoreCase || (isRe && expression.ignoreCase),
+        maxWildcard,
+        prng
+    };
+    return string.generateString(unicode, exprSource, options);
 };
 
 const KIND_GENERATORS = {
@@ -54,6 +60,7 @@ const KIND_GENERATORS = {
     "set": setGenerator,
     "color": colorGenerator,
     "rgb": colorGenerator,
+    "string": stringGenerator,
     "a-z": stringGenerator,
     "A-Z": stringGenerator
 };

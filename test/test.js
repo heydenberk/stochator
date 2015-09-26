@@ -88,6 +88,18 @@ describe('Stochator (with seed STOCHATOR)', function() {
 
     });
 
+    describe('the boolean generator', function() {
+
+        it('should return a random boolean value', function() {
+            var result1 = new Stochator({kind: "boolean"}).next();
+            var result2 = Stochator.randomBoolean(getPrng());
+
+            assert.equal(result1, false);
+            assert.equal(result2, false);
+        });
+
+    });
+
     describe('the set generator', function() {
 
         it('should return an item from a given array', function() {
@@ -178,6 +190,143 @@ describe('Stochator (with seed STOCHATOR)', function() {
         });
 
     });
+
+    describe('the string generator', function() {
+
+        it("should return 36 alphanumeric characters", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "[a-zA-Z0-9]{36}",
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, '7UbLfPow91BEddp4akNC7SLP4F3SxPj8bb6f');
+        });
+
+        it("should randomize the case when ignoreCase is true", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "Stochator",
+                ignoreCase: true,
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, 'STOcHaTor');
+        });
+
+        it("should randomize the case when the i flag is set on a RegExp", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: /Stochator/i,
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, 'STOcHaTor');
+        });
+
+        it("should generate values from within groups", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "Hello, (world|Stochator)!",
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, 'Hello, world!');
+        });
+
+        it("should generate values that don't match negated groups", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "[^\\w]{10}",
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, '}\\ ="?\'+~`');
+        });
+
+        it("should generate values from within groups and with back-references", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "Hello, (world|Stochator)! You're a great \\1!",
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, "Hello, world! You're a great world!");
+        });
+
+        it("should generate values with multiple out-of-order back-references", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "Hello, (Alice|Bob)\\. Hello (Carol|Dan)\\. \\2, meet \\1\\. \\1, meet \\2\\.",
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, "Hello, Alice. Hello Dan. Dan, meet Alice. Alice, meet Dan.");
+        });
+
+        it("should generate values that match positive lookaheads", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "Alli(?=gators|son)",
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, "Alligators");
+        });
+
+        it("should generate values that match negative lookaheads", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "Alli(?!son|gators)ance",
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, "Alliance");
+        });
+
+        it("should generate values from repeated groups", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "My favorite color is #([0-9A-F]{2}){3}",
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, "My favorite color is #C01A5F");
+        });
+
+        it("should generate unicode strings when specified", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: ".{5}!",
+                unicode: true,
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, "쁇ڣ馟ᗤ!");
+        });
+
+        it("should generate longer wildcard matches when specified", function() {
+            var result = new Stochator({
+                kind: "string",
+                expression: "Look at all this binary: ((0|1){256})",
+                maxWildcard: 256,
+                prng: getPrng()
+            }).next();
+
+            assert.equal(result, [
+                'Look at all this binary: ',
+                '11010100110000010010111111110101',
+                '00100100000110111100010101011100',
+                '10100111010001111100110111010100',
+                '01001101011111010111110110111101',
+                '11110110000000111100101001001001',
+                '00010010101001001000101010110110',
+                '01011010001111001011111101010011',
+                '11001000100111101110001001110100'
+            ].join(''));
+        });
+
+    })
 
     describe('the integer generator with a mutator', function() {
 

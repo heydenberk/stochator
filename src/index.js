@@ -128,7 +128,15 @@ export default class Stochator {
         normal: distribution.randomNormallyDistributedFloat
     };
 
+    static randomAsciiCharacter = string.randomAsciiCharacter;
+
+    static randomAsciiString = string.randomAsciiString;
+
     static randomBoolean = boolean.random;
+
+    static randomByte = integer.randomByte;
+
+    static randomCharacterFromRange = string.randomCharacterFromRange;
 
     static randomColor = color.randomRgb;
 
@@ -138,15 +146,23 @@ export default class Stochator {
 
     static randomLowercaseCharacter = string.randomLowercaseCharacter;
 
-    static randomUppercaseCharacter = string.randomUppercaseCharacter;
+    static randomLowercaseCharacter = string.randomLowercaseCharacter;
 
     static randomSetMember = set.randomMember;
 
     static randomSetMemberWithoutReplacement = set.randomMemberWithoutReplacement;
 
-    static weightedRandomSetMember = set.weightedRandomMember;
+    static randomUnicodeCharacter = string.randomUnicodeCharacter;
+
+    static randomUnicodeString = string.randomUnicodeString;
+
+    static randomUppercaseCharacter = string.randomUppercaseCharacter;
+
+    static randomUppercaseCharacter = string.randomUppercaseCharacter;
 
     static shuffleSet = set.shuffleSet;
+
+    static weightedRandomSetMember = set.weightedRandomMember;
 
 
     constructor(...args) {

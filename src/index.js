@@ -1,7 +1,9 @@
 import identity from "lodash.identity";
 import isFunction from "lodash.isFunction";
+import isRegExp from "lodash.isregexp";
 import isString from "lodash.isString";
 import range from "lodash.range";
+import boolean from "./boolean";
 import color from "./color";
 import distribution from "./distribution";
 import float from "./float";
@@ -9,6 +11,8 @@ import integer from "./integer";
 import seedrandom from "seedrandom";
 import set from "./set";
 import string from "./string";
+
+const booleanGenerator = ({prng}) => () => boolean.random(prng);
 
 const colorGenerator = ({prng}) => () => color.randomRgb(prng);
 
@@ -42,18 +46,25 @@ const setGenerator = ({values, prng, replacement=true, shuffle=false, weights=nu
     }
 };
 
-const stringGenerator = ({kind, prng}) => {
-    return kind === "a-z" ?
-        () => string.randomLowercaseCharacter(prng)
-        : () => string.randomUppercaseCharacter(prng);
+const stringGenerator = ({kind, expression=`[${kind}]`, ignoreCase=false, maxWildcard=100, prng, unicode=false}) => {
+    const isRe = isRegExp(expression);
+    const exprSource = isRe ? expression.source : expression;
+    const options = {
+        ignoreCase: ignoreCase || (isRe && expression.ignoreCase),
+        maxWildcard,
+        prng
+    };
+    return string.generateString(unicode, exprSource, options);
 };
 
 const KIND_GENERATORS = {
+    "boolean": booleanGenerator,
     "float": floatGenerator,
     "integer": integerGenerator,
     "set": setGenerator,
     "color": colorGenerator,
     "rgb": colorGenerator,
+    "string": stringGenerator,
     "a-z": stringGenerator,
     "A-Z": stringGenerator
 };
@@ -111,11 +122,21 @@ const parseArgs = (args) => {
 
 export default class Stochator {
 
-    VERSION = "0.5"
+    VERSION = "0.6"
 
     static fromDistribution = {
         normal: distribution.randomNormallyDistributedFloat
     };
+
+    static randomAsciiCharacter = string.randomAsciiCharacter;
+
+    static randomAsciiString = string.randomAsciiString;
+
+    static randomBoolean = boolean.random;
+
+    static randomByte = integer.randomByte;
+
+    static randomCharacterFromRange = string.randomCharacterFromRange;
 
     static randomColor = color.randomRgb;
 
@@ -125,15 +146,19 @@ export default class Stochator {
 
     static randomLowercaseCharacter = string.randomLowercaseCharacter;
 
-    static randomUppercaseCharacter = string.randomUppercaseCharacter;
-
     static randomSetMember = set.randomMember;
 
     static randomSetMemberWithoutReplacement = set.randomMemberWithoutReplacement;
 
-    static weightedRandomSetMember = set.weightedRandomMember;
+    static randomUnicodeCharacter = string.randomUnicodeCharacter;
+
+    static randomUnicodeString = string.randomUnicodeString;
+
+    static randomUppercaseCharacter = string.randomUppercaseCharacter;
 
     static shuffleSet = set.shuffleSet;
+
+    static weightedRandomSetMember = set.weightedRandomMember;
 
 
     constructor(...args) {

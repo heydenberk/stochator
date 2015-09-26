@@ -21,10 +21,13 @@
     "uglifyify": "^3.0.1"
   },
   "dependencies": {
-    "lodash.identity": ">=3.0",
-    "lodash.isfunction": ">=3.0",
-    "lodash.isstring": ">=3.0",
-    "lodash.range": ">=3.0",
+    "discontinuous-range": "1.0.0",
+    "lodash.identity": "^3.0",
+    "lodash.isfunction": "^3.0",
+    "lodash.isregexp": "^3.0",
+    "lodash.isstring": "^3.0",
+    "lodash.range": "^3.0",
+    "ret": "0.1.10",
     "seedrandom": "^2.4.2"
   },
   "homepage": "https://github.com/heydenberk/stochator",
@@ -60,5 +63,5 @@
     "prepublish": "npm run build",
     "test": "mocha"
   },
-  "version": "0.5.0"
+  "version": "0.6.0"
 }

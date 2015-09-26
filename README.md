@@ -207,7 +207,7 @@ characterGenerator.next(25).join(""); // "mbjxkhflycpxgdrtyyyevasga"
 `Stochator.randomUnicodeCharacter(prng=Math.random)`
 `Stochator.randomUppercaseCharacter(prng=Math.random)`*
 
-For more flexibility than the pre-defined sets allow, we can use pass a regular expression.
+For more flexibility than the pre-defined sets allow, we can use a regular expression.
 
 ```js
 var hexGenerator = new Stochator({
@@ -270,6 +270,8 @@ var binaryGenerator = new Stochator({
 });
 binaryGenerator.next(); // "Look at all this binary: 1001011001010011100010101000011100010110010100100100000000110011010000000100000111111010110010100000010101001001100110011001111001111000111101000111010101011100010101101100001011110011110001101100001000001100101111110100001110100100000010111101111011111101"
 ```
+
+Special thanks to [randexp.js](https://github.com/fent/randexp.js) for inspiring this feature and informing its approach!
 
 ## Mutators
 The constructor accepts an optional final argument which is passed the output

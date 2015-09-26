@@ -111,7 +111,7 @@ const parseArgs = (args) => {
 
 export default class Stochator {
 
-    VERSION = "0.5"
+    VERSION = "0.6"
 
     static fromDistribution = {
         normal: distribution.randomNormallyDistributedFloat

@@ -205,7 +205,7 @@ characterGenerator.next(25).join(""); // "mbjxkhflycpxgdrtyyyevasga"
 `Stochator.randomAsciiCharacter(prng=Math.random)`
 `Stochator.randomLowercaseCharacter(prng=Math.random)`
 `Stochator.randomUnicodeCharacter(prng=Math.random)`
-`Stochator.randomUppercaseCharacter(prng=Math.random)`
+`Stochator.randomUppercaseCharacter(prng=Math.random)`*
 
 For more flexibility than the pre-defined sets allow, we can use pass a regular expression.
 

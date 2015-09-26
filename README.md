@@ -10,11 +10,13 @@ Download the latest compiled version of stochator.js (0.5):
 - [Floats from an interval](#floats-from-an-interval)
 - [Floats from a normal distribution](#floats-from-a-normal-distribution)
 - [Integers](#integers)
+- [Booleans](#booleans)
 - [Multiple results](#multiple-results)
 - [From sets](#from-sets)
 - [From sets with weights](#from-sets-with-weights)
 - [From sets without replacement](#from-sets-without-replacement)
 - [From predefined sets](#from-predefined-sets)
+- [Strings](#strings)
 - [Mutators](#mutators)
 - [Multiple generators](#multiple-generators)
 - [Changelog](#changelog)
@@ -84,6 +86,28 @@ var die = new Stochator({
 die.roll(); // 6
 die.roll(); // 1
 die.roll(); // 2
+````
+
+*New in 0.5*
+*Available as `Stochator.randomByte(prng=Math.random)`*
+
+The special case of generating byte integers has its own shorthand.
+
+```js
+Stochator.randomByte() // 186;
+```
+
+## Booleans
+*New in 0.6*
+*Available as `Stochator.randomBoolean(prng=Math.random)`*
+
+Although trivally composable from other generators, randomBoolean is provided for convenience.
+
+````js
+var bools = new Stochator({kind: "boolean"});
+bools.next(); // false
+bools.next(); // true
+bools.next(); // true
 ````
 
 ## Multiple results
@@ -171,6 +195,81 @@ characterGenerator.next(25).join(""); // "uktlbkgufzjiztatmqelawfez"
 characterGenerator.next(25).join(""); // "wdhygotehcfmrkjyuuovztxla"
 characterGenerator.next(25).join(""); // "mbjxkhflycpxgdrtyyyevasga"
 ````
+
+## Strings
+*New in 0.6*
+*Also available as:
+`Stochator.randomCharacterFromRange(range, prng=Math.random)`
+`Stochator.randomAsciiString(expression, ignoreCase, prng=Math.random)`
+`Stochator.randomUnicodeString(expression, ignoreCase, prng=Math.random)`
+`Stochator.randomAsciiCharacter(prng=Math.random)`
+`Stochator.randomLowercaseCharacter(prng=Math.random)`
+`Stochator.randomUnicodeCharacter(prng=Math.random)`
+`Stochator.randomUppercaseCharacter(prng=Math.random)`
+
+For more flexibility than the pre-defined sets allow, we can use pass a regular expression.
+
+```js
+var hexGenerator = new Stochator({
+    kind: "string",
+    expression: "#[A-F0-9]{6}"
+});
+hexGenerator.next(); // "#57A7BB"
+```
+
+Passing the `ignoreCase` argument with a value of `true` will cause characters in the a-z and A-Z ranges to be randomized in case.
+
+```js
+var coolGreetingGenerator = new Stochator({
+    kind: "string",
+    expression: "Hello, world",
+    ignoreCase: true
+});
+coolGreetingGenerator.next(); // "hELLo, WorlD"
+```
+
+`expression` can also be a true regular expression, in which case the trailing `i` flag will be honored.
+
+```js
+var coolGreetingGenerator = new Stochator({
+    kind: "string",
+    expression: /Hello, world/i,
+    ignoreCase: true
+});
+coolGreetingGenerator.next(); // "HELlO, WorLD"
+```
+
+All features supported by JavaScript regular expressions should work.
+
+```js
+var fruitGenerator = new Stochator({
+    kind: "string",
+    expression: "((Apples|Oranges|Pears)! ?){1,5}"
+});
+fruitGenerator.next(); // "Oranges!Pears! Apples! "
+```
+
+By default, the resulting characters are limited to ASCII. If you want unicode, pass the property `unicode` with a value of `true`.
+
+```js
+var unicodeGenerator = new Stochator({
+    kind: "string",
+    expression: ".{10}",
+    unicode: true
+});
+unicodeGenerator.next(); // "貧㒐⮧Ꮜ�惜攤鎃๵켕"
+```
+
+To override the maximum length of an unbounded match (`*` or `{n,}`), provide `maxWildcard` as `true`.
+
+```js
+var binaryGenerator = new Stochator({
+    kind: "string",
+    expression: "Look at all this binary: ((0|1){256})",
+    maxWildcard: 256
+});
+binaryGenerator.next(); // "Look at all this binary: 1001011001010011100010101000011100010110010100100100000000110011010000000100000111111010110010100000010101001001100110011001111001111000111101000111010101011100010101101100001011110011110001101100001000001100101111110100001110100100000010111101111011111101"
+```
 
 ## Mutators
 The constructor accepts an optional final argument which is passed the output
@@ -287,6 +386,9 @@ new Stochator({ seed: 'STOCHATOR' }).next(); // Still always 0.4045178783365678
 ````
 
 ## Changelog
+### 0.6
+[Stochator now supports a `kind` of `string`](#strings), which supports generation of pseudo-random strings that satisfy
+provided regular expressions.
 ### 0.5
 The entire project has been rewritten to use ES6 features, with translation handled by babel and browserify.
 In addition, `Stochator` has been supplemented with static methods to facilitate single-use value generators.

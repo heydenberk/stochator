@@ -1,6 +1,6 @@
-Download the latest compiled version of stochator.js (0.5):
-- [development](https://github.com/heydenberk/stochator/releases/download/0.5/stochator.js) (unminified, 60Kb).
-- [production](https://github.com/heydenberk/stochator/releases/download/0.5/stochator.min.js) (minified, 24Kb).
+Download the latest compiled version of stochator.js (0.6):
+- [development](https://github.com/heydenberk/stochator/releases/download/0.6/stochator.js) (unminified, 60Kb).
+- [production](https://github.com/heydenberk/stochator/releases/download/0.6/stochator.min.js) (minified, 24Kb).
 
 # Stochator
 
@@ -88,7 +88,7 @@ die.roll(); // 1
 die.roll(); // 2
 ````
 
-*New in 0.5*
+*New in 0.6*
 *Available as `Stochator.randomByte(prng=Math.random)`*
 
 The special case of generating byte integers has its own shorthand.

@@ -146,8 +146,6 @@ export default class Stochator {
 
     static randomLowercaseCharacter = string.randomLowercaseCharacter;
 
-    static randomLowercaseCharacter = string.randomLowercaseCharacter;
-
     static randomSetMember = set.randomMember;
 
     static randomSetMemberWithoutReplacement = set.randomMemberWithoutReplacement;
@@ -155,8 +153,6 @@ export default class Stochator {
     static randomUnicodeCharacter = string.randomUnicodeCharacter;
 
     static randomUnicodeString = string.randomUnicodeString;
-
-    static randomUppercaseCharacter = string.randomUppercaseCharacter;
 
     static randomUppercaseCharacter = string.randomUppercaseCharacter;
 

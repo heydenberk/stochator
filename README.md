@@ -207,7 +207,7 @@ characterGenerator.next(25).join(""); // "mbjxkhflycpxgdrtyyyevasga"
 `Stochator.randomUnicodeCharacter(prng=Math.random)`
 `Stochator.randomUppercaseCharacter(prng=Math.random)`*
 
-For more flexibility than the pre-defined sets allow, we can use pass a regular expression.
+For more flexibility than the pre-defined sets allow, we can use a regular expression.
 
 ```js
 var hexGenerator = new Stochator({

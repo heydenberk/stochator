@@ -91,7 +91,7 @@ describe('Stochator (with seed STOCHATOR)', function() {
     describe('the boolean generator', function() {
 
         it('should return a random boolean value', function() {
-            var result1 = new Stochator({kind: "boolean"}).next();
+            var result1 = new Stochator({kind: "boolean", seed: "STOCHATOR"}).next();
             var result2 = Stochator.randomBoolean(getPrng());
 
             assert.equal(result1, false);

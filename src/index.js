@@ -34,7 +34,7 @@ const setGenerator = ({values, prng, replacement=true, shuffle=false, weights=nu
     }
 
     if (shuffle) {
-        return () => set.shuffleSet(values, prng);
+        return () => set.shuffle(values, prng);
     } else if (replacement) {
         if (weights) {
             return () => set.weightedRandomMember(values, weights, prng);

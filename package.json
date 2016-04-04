@@ -63,5 +63,5 @@
     "prepublish": "npm run build",
     "test": "mocha"
   },
-  "version": "0.6.1"
+  "version": "0.6.2"
 }
